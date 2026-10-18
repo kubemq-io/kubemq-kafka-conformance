@@ -1,0 +1,224 @@
+# Track C client rows. Every client runs the same scenario (suites/clients/SCENARIO.md) through a
+# small driver in a container, on the Kafka oracle first, then on KubeMQ with only the bootstrap
+# address changed. Two rows per client: the full scenario (allowed deviation only
+# group.protocol=classic) and stock defaults (zero overrides, upstream quickstart), which records
+# the group protocol the pinned client actually uses.
+#   client   the name the driver reports; version  the pinned version the driver must have loaded
+#   driver   suites/clients/drivers/<driver>;    admin  false when the client has no admin API
+#   limits   client limitations this row allows, published with the row: assignment-hidden (the
+#            consumer API does not expose its group assignment), ack-offsets-unknown (the producer
+#            reports no offsets), headers-per-run (a command-line tool sets headers per run, so
+#            records carry only the client header), commit-on-close (the consumer commits only on
+#            close, by the client's auto commit; committed offsets are still checked); the
+#            verifier then skips or adapts only those
+track: clients
+rows:
+  - id: clients.franz-go.scenario
+    title: "franz-go: create 3-partition topic, 300 keyed records acks=all, group consume and commit, 100 more, second member resumes from the committed offsets"
+    client: franz-go
+    version: v1.22.0
+    driver: franzgo
+    mode: scenario
+    provenance: kubemq-authored
+    source: suites/clients/drivers/franzgo (scenario in suites/clients/SCENARIO.md)
+  - id: clients.franz-go.stock-defaults
+    title: "franz-go stock defaults: zero overrides, topic with broker defaults, consumer group subscribes, 10 records produced and received"
+    client: franz-go
+    version: v1.22.0
+    driver: franzgo
+    mode: stock-defaults
+    provenance: kubemq-authored
+    source: suites/clients/drivers/franzgo (scenario in suites/clients/SCENARIO.md)
+  - id: clients.kafka-clients.scenario
+    title: "Java kafka-clients: create 3-partition topic, 300 keyed records acks=all idempotent, group consume and commitSync, 100 more, second member resumes from the committed offsets"
+    client: kafka-clients
+    version: 4.3.1
+    driver: java
+    mode: scenario
+    provenance: kubemq-authored
+    source: suites/clients/drivers/java (scenario in suites/clients/SCENARIO.md)
+  - id: clients.kafka-clients.stock-defaults
+    title: "Java kafka-clients stock defaults: zero overrides (bootstrap, group id, string serializers only), topic with broker defaults, consumer subscribes, 10 records produced and received"
+    client: kafka-clients
+    version: 4.3.1
+    driver: java
+    mode: stock-defaults
+    provenance: kubemq-authored
+    source: suites/clients/drivers/java (scenario in suites/clients/SCENARIO.md)
+  - id: clients.kafka-clients.verifiable
+    title: "Kafka's own kafka-verifiable-producer and kafka-verifiable-consumer (the clients its ducktape system tests drive): 300 records acks=-1 with 20 repeating keys over 3 partitions, consumed by a group (classic) with per-batch commits; every acknowledged record delivered once, in partition order, offsets committed to the log end"
+    client: kafka-clients
+    version: 4.3.1
+    driver: verifiable
+    mode: verifiable
+    admin: false
+    provenance: upstream
+    source: "Apache Kafka 4.3.1 tools/src/main/java/org/apache/kafka/tools/VerifiableProducer.java and VerifiableConsumer.java, validated as tests/kafkatest/tests/produce_consume_validate.py does (every acked message consumed); run from the pinned oracle image"
+  - id: clients.confluent-kafka-python.scenario
+    title: "confluent-kafka-python (librdkafka): create 3-partition topic, 300 keyed records acks=all idempotent, group consume and synchronous commit, 100 more, second member resumes from the committed offsets"
+    client: confluent-kafka-python
+    version: 2.15.1 (librdkafka 2.15.1)
+    driver: python
+    mode: scenario
+    provenance: kubemq-authored
+    source: suites/clients/drivers/python (scenario in suites/clients/SCENARIO.md)
+  - id: clients.confluent-kafka-python.stock-defaults
+    title: "confluent-kafka-python stock defaults: zero overrides (bootstrap and group id only), topic with broker defaults, consumer subscribes, 10 records produced and received"
+    client: confluent-kafka-python
+    version: 2.15.1 (librdkafka 2.15.1)
+    driver: python
+    mode: stock-defaults
+    provenance: kubemq-authored
+    source: suites/clients/drivers/python (scenario in suites/clients/SCENARIO.md)
+  - id: clients.sarama.scenario
+    title: "sarama: create 3-partition topic, 300 keyed records acks=all idempotent, consumer group consume and synchronous commit, 100 more, second member resumes from the committed offsets"
+    client: sarama
+    version: v1.61.0
+    driver: sarama
+    mode: scenario
+    provenance: kubemq-authored
+    source: suites/clients/drivers/sarama (scenario in suites/clients/SCENARIO.md)
+  - id: clients.sarama.stock-defaults
+    title: "sarama stock defaults: zero overrides (sarama.NewConfig, plus Return.Successes that its SyncProducer requires), topic created by the track with broker defaults, consumer group subscribes, 10 records produced and received"
+    client: sarama
+    version: v1.61.0
+    driver: sarama
+    mode: stock-defaults
+    admin: false
+    provenance: kubemq-authored
+    source: suites/clients/drivers/sarama (scenario in suites/clients/SCENARIO.md)
+  - id: clients.segmentio-kafka-go.scenario
+    title: "segmentio/kafka-go: create 3-partition topic, 300 keyed records (hash balancer) acks=all, group Reader consume and CommitMessages, 100 more, second member resumes from the committed offsets"
+    client: segmentio/kafka-go
+    version: v0.4.51
+    driver: segmentio
+    mode: scenario
+    limits: [assignment-hidden]
+    provenance: kubemq-authored
+    source: suites/clients/drivers/segmentio (scenario in suites/clients/SCENARIO.md)
+  - id: clients.segmentio-kafka-go.stock-defaults
+    title: "segmentio/kafka-go stock defaults: zero overrides (Writer and group Reader with only address, topic and group; the Writer default is acks=0, so records are judged by content, not acknowledged offsets), topic with broker defaults, 10 records produced and read with ReadMessage (commits), all received"
+    client: segmentio/kafka-go
+    version: v0.4.51
+    driver: segmentio
+    mode: stock-defaults
+    limits: [assignment-hidden, ack-offsets-unknown]
+    provenance: kubemq-authored
+    source: suites/clients/drivers/segmentio (scenario in suites/clients/SCENARIO.md)
+  - id: clients.kcat.scenario
+    title: "kcat (librdkafka): topic created by the track (3 partitions), 300 keyed records with the run's client header in one kcat run (acks=all, idempotent); group consumer reads to the end of every partition and commits on close; 100 more in a second run; second member resumes from the committed offsets and reads to the end"
+    client: kcat
+    version: 1.7.1 (librdkafka 2.10.0)
+    driver: kcat
+    mode: scenario
+    admin: false
+    limits: [ack-offsets-unknown, headers-per-run, commit-on-close]
+    provenance: kubemq-authored
+    source: suites/clients/drivers/kcat (scenario in suites/clients/SCENARIO.md)
+  - id: clients.kcat.stock-defaults
+    title: "kcat stock defaults: zero overrides (-b, -G, -t only), topic created by the track with broker defaults, consumer first, then 10 values produced in one kcat run, all received"
+    client: kcat
+    version: 1.7.1 (librdkafka 2.10.0)
+    driver: kcat
+    mode: stock-defaults
+    admin: false
+    limits: [ack-offsets-unknown]
+    provenance: kubemq-authored
+    source: suites/clients/drivers/kcat (scenario in suites/clients/SCENARIO.md)
+  - id: clients.confluent-kafka-go.scenario
+    title: "confluent-kafka-go (librdkafka): create 3-partition topic, 300 keyed records acks=all idempotent, group consume and synchronous commit, 100 more, second member resumes from the committed offsets"
+    client: confluent-kafka-go
+    version: v2.15.1 (librdkafka 2.15.1)
+    driver: confluentgo
+    mode: scenario
+    provenance: kubemq-authored
+    source: suites/clients/drivers/confluentgo (scenario in suites/clients/SCENARIO.md)
+  - id: clients.confluent-kafka-go.stock-defaults
+    title: "confluent-kafka-go stock defaults: zero overrides (bootstrap and group id only), topic with broker defaults, consumer subscribes, 10 records produced and received"
+    client: confluent-kafka-go
+    version: v2.15.1 (librdkafka 2.15.1)
+    driver: confluentgo
+    mode: stock-defaults
+    provenance: kubemq-authored
+    source: suites/clients/drivers/confluentgo (scenario in suites/clients/SCENARIO.md)
+  - id: clients.confluent-kafka-dotnet.scenario
+    title: "Confluent.Kafka (.NET, librdkafka): create 3-partition topic, 300 keyed records acks=all idempotent, group consume and synchronous commit, 100 more, second member resumes from the committed offsets"
+    client: confluent-kafka-dotnet
+    version: 2.15.1 (librdkafka 2.15.1)
+    driver: dotnet
+    mode: scenario
+    provenance: kubemq-authored
+    source: suites/clients/drivers/dotnet (scenario in suites/clients/SCENARIO.md)
+  - id: clients.confluent-kafka-dotnet.stock-defaults
+    title: "Confluent.Kafka (.NET) stock defaults: zero overrides (bootstrap and group id only), topic with broker defaults, consumer subscribes, 10 records produced and received"
+    client: confluent-kafka-dotnet
+    version: 2.15.1 (librdkafka 2.15.1)
+    driver: dotnet
+    mode: stock-defaults
+    provenance: kubemq-authored
+    source: suites/clients/drivers/dotnet (scenario in suites/clients/SCENARIO.md)
+  - id: clients.kafkajs.scenario
+    title: "KafkaJS: create 3-partition topic, 300 keyed records acks=-1 idempotent (one send per record), group consume with autoCommit off and commitOffsets, 100 more, second member resumes from the committed offsets"
+    client: kafkajs
+    version: 2.2.4
+    driver: kafkajs
+    mode: scenario
+    provenance: kubemq-authored
+    source: suites/clients/drivers/kafkajs (scenario in suites/clients/SCENARIO.md)
+  - id: clients.kafkajs.stock-defaults
+    title: "KafkaJS stock defaults: zero overrides (brokers and groupId only), topic with broker defaults, consumer subscribes (latest), 10 records produced and received"
+    client: kafkajs
+    version: 2.2.4
+    driver: kafkajs
+    mode: stock-defaults
+    provenance: kubemq-authored
+    source: suites/clients/drivers/kafkajs (scenario in suites/clients/SCENARIO.md)
+  - id: clients.spring-kafka.scenario
+    title: "Spring Kafka: KafkaAdmin creates a 3-partition topic, KafkaTemplate sends 300 keyed records acks=all idempotent, a listener container consumes them (Spring's default commits), 100 more, a new container resumes from the committed offsets"
+    client: spring-kafka
+    version: 4.1.1 (kafka-clients 4.2.1)
+    driver: spring
+    mode: scenario
+    provenance: kubemq-authored
+    source: suites/clients/drivers/spring (scenario in suites/clients/SCENARIO.md)
+  - id: clients.spring-kafka.stock-defaults
+    title: "Spring Kafka stock defaults: zero overrides (bootstrap, group id, string serializers), KafkaAdmin topic with broker defaults, listener container assigned first, KafkaTemplate sends 10 records, all received"
+    client: spring-kafka
+    version: 4.1.1 (kafka-clients 4.2.1)
+    driver: spring
+    mode: stock-defaults
+    provenance: kubemq-authored
+    source: suites/clients/drivers/spring (scenario in suites/clients/SCENARIO.md)
+  # --- Legacy row: an older Java kafka-clients and an older librdkafka ------
+  - id: clients.kafka-clients-legacy.scenario
+    title: "Legacy Java kafka-clients 3.9.1: create 3-partition topic, 300 keyed records acks=all idempotent, group consume and commitSync, 100 more, second member resumes from the committed offsets"
+    client: kafka-clients
+    version: 3.9.1
+    driver: java-legacy
+    mode: scenario
+    provenance: kubemq-authored
+    source: suites/clients/drivers/java-legacy (drivers/java sources built against kafka-clients 3.9.1; scenario in suites/clients/SCENARIO.md)
+  - id: clients.kafka-clients-legacy.stock-defaults
+    title: "Legacy Java kafka-clients 3.9.1 stock defaults: zero overrides (bootstrap, group id, string serializers only), topic with broker defaults, consumer subscribes, 10 records produced and received"
+    client: kafka-clients
+    version: 3.9.1
+    driver: java-legacy
+    mode: stock-defaults
+    provenance: kubemq-authored
+    source: suites/clients/drivers/java-legacy (drivers/java sources built against kafka-clients 3.9.1; scenario in suites/clients/SCENARIO.md)
+  - id: clients.confluent-kafka-python-legacy.scenario
+    title: "Legacy confluent-kafka-python 2.6.1 (librdkafka 2.6.1): create 3-partition topic, 300 keyed records acks=all idempotent, group consume and synchronous commit, 100 more, second member resumes from the committed offsets"
+    client: confluent-kafka-python
+    version: 2.6.1 (librdkafka 2.6.1)
+    driver: python-legacy
+    mode: scenario
+    provenance: kubemq-authored
+    source: suites/clients/drivers/python-legacy (drivers/python sources with confluent-kafka 2.6.1; scenario in suites/clients/SCENARIO.md)
+  - id: clients.confluent-kafka-python-legacy.stock-defaults
+    title: "Legacy confluent-kafka-python 2.6.1 stock defaults: zero overrides (bootstrap and group id only), topic with broker defaults, consumer subscribes, 10 records produced and received"
+    client: confluent-kafka-python
+    version: 2.6.1 (librdkafka 2.6.1)
+    driver: python-legacy
+    mode: stock-defaults
+    provenance: kubemq-authored
+    source: suites/clients/drivers/python-legacy (drivers/python sources with confluent-kafka 2.6.1; scenario in suites/clients/SCENARIO.md)

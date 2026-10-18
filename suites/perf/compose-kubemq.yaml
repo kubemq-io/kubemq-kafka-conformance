@@ -1,0 +1,31 @@
+# KubeMQ for the performance baseline (Track H): the released image pinned by digest, its store on
+# the machine's persistent disk (bind mount of POSTURE_DIR/kubemq-data), the next storage engine's
+# default sync behaviour, configured by the YAML "track.sh prepare" writes (passed as the image's
+# CONFIG variable, base64, by runner/lib/brokers.sh posture_up). The runner injects the key.
+name: kcert-perf-kubemq-${CERT_RUN_ID:?CERT_RUN_ID is set by runner/certify.sh}
+services:
+  kubemq:
+    image: ${KUBEMQ_IMAGE_REPO}@${KUBEMQ_IMAGE_DIGEST}
+    container_name: ${POSTURE_KUBEMQ_CONTAINER:?set by runner/certify.sh}
+    hostname: kubemq-perf
+    ports:
+      - "${CERT_BIND_ADDR:-127.0.0.1}:${POSTURE_KUBEMQ_PORT}:${POSTURE_KUBEMQ_PORT}"
+      - "${CERT_BIND_ADDR:-127.0.0.1}:${POSTURE_KUBEMQ_API_PORT}:${POSTURE_KUBEMQ_API_PORT}"
+    environment:
+      KUBEMQ_LICENSE_KEY: ${KUBEMQ_LICENSE_KEY:?KUBEMQ_LICENSE_KEY is not set. Request a KubeMQ evaluation key and export it before running.}
+      CONFIG: ${POSTURE_KUBEMQ_CONFIG:?set by runner/lib/brokers.sh}
+      CONNECTORS_AMQP_ENABLE: "false"
+      CONNECTORS_AMQP_MANAGEMENT_ENABLE: "false"
+      CONNECTORS_AMQP10_ENABLE: "false"
+      CONNECTORSMQTT_ENABLE: "false"
+      CONNECTORS_STOMP_ENABLE: "false"
+      CONNECTORS_AWS_ENABLE: "false"
+      CONNECTORS_GCP_ENABLE: "false"
+    volumes:
+      - "${POSTURE_DIR:?set by runner/certify.sh}/kubemq-data:/kubemq/store"
+      # The machine's license folder, as in compose/kubemq-single.yaml: later boots reuse the lease.
+      - license:/kubemq/store/license
+volumes:
+  license:
+    external: true
+    name: ${KUBEMQ_LICENSE_VOLUME:?KUBEMQ_LICENSE_VOLUME is set by runner/certify.sh}

@@ -1,0 +1,17 @@
+# Schema Registry rows (opt-in track; the image is under the Confluent Community License and runs
+# only with CERT_ACCEPT_CONFLUENT_COMMUNITY_LICENSE=yes, see
+# suites/schema-registry/track.sh). Driven by the tools track's driver (suites/tools).
+track: schema-registry
+rows:
+  - id: schema-registry.register-and-compat
+    group: schema-registry
+    title: "Confluent Schema Registry stores schemas in its compacted Kafka topic: two backward-compatible versions register with distinct ids, an incompatible change is rejected, the store topic has 1 partition and cleanup.policy=compact"
+    probe: sr-register-and-compat
+    provenance: kubemq-authored
+    source: suites/tools/probe/schemaregistry.go (confluentinc/cp-schema-registry 8.3.2; ported from kubemq-server tests/kafka-ecosystem/schema-registry.sh)
+  - id: schema-registry.restart-rebuild
+    group: schema-registry
+    title: "After a registry restart, the subject's versions [1,2] and schema id 2 are rebuilt byte-identical from the store topic alone"
+    probe: sr-restart-rebuild
+    provenance: kubemq-authored
+    source: suites/tools/probe/schemaregistry.go (confluentinc/cp-schema-registry 8.3.2)

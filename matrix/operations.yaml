@@ -1,0 +1,290 @@
+# Operations track rows: Apache Kafka operator metrics mapped to the KubeMQ Prometheus series
+# an operator would use instead (suites/operations). The track scrapes both brokers before and
+# after the same scripted workload (suites/operations/metric/matrix.go lists the workloads):
+# Kafka through its own kafka-jmx.sh, KubeMQ through /metrics on its API port. Each leg must
+# show the series, a counter that never goes backwards, and the change the workload must cause.
+# The oracle leg must meet the expectation, or the row is VOID.
+#
+# Selectors. Kafka names are "<domain>:type=<type>[,name=<name>]:<attribute>" with every other
+# MBean key (topic, request, error, listener, ...) as a label. "admin:" names are series the
+# track computes from the Kafka admin API on either broker (ListOffsets and OffsetFetch), for
+# facts Kafka itself does not export as a broker metric. A row without a kubemq selector means
+# KubeMQ exposes no equivalent; it FAILs unless a gap is registered in docs/gaps.md.
+#
+# KubeMQ's Kafka counters are node totals without a topic label, so each workload runs alone on
+# the broker between its two scrapes. KubeMQ refreshes its lag gauge every 5 seconds; the
+# group-lag workloads wait 11 seconds (two refresh cycles) before the second scrape.
+
+track: operations
+rows:
+  # --- Broker throughput -------------------------------------------------------------------
+  - id: operations.metrics.messages-in
+    group: broker-metrics
+    title: "Records produced (Kafka MessagesInPerSec): grows by exactly the records the workload produced"
+    workload: produce-consume
+    kafka: {name: "kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec:Count", labels: {topic: "${topic}"}}
+    kubemq: {name: kubemq_kafka_messages_total, labels: {op: produced}}
+    expect: {kind: delta-exact, of: records}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX BrokerTopicMetrics; kubemq-server services/metrics/exporter.go KafkaCollector)
+  - id: operations.metrics.bytes-in
+    group: broker-metrics
+    title: "Bytes produced (Kafka BytesInPerSec): grows by the payload plus batch overhead (1x to 1.5x payload + 64 KiB)"
+    workload: produce-consume
+    kafka: {name: "kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec:Count", labels: {topic: "${topic}"}}
+    kubemq: {name: kubemq_kafka_message_bytes_total, labels: {op: produced}}
+    expect: {kind: delta-range, of: payload_bytes, min: 1, max: 1.5, slack: 65536}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX BrokerTopicMetrics; kubemq-server services/metrics/exporter.go KafkaCollector)
+  - id: operations.metrics.bytes-out
+    group: broker-metrics
+    title: "Bytes fetched by consumers (Kafka BytesOutPerSec): at least the payload, at most 3x payload + 64 KiB (refetches allowed)"
+    workload: produce-consume
+    kafka: {name: "kafka.server:type=BrokerTopicMetrics,name=BytesOutPerSec:Count", labels: {topic: "${topic}"}}
+    kubemq: {name: kubemq_kafka_message_bytes_total, labels: {op: fetched}}
+    expect: {kind: delta-range, of: payload_bytes, min: 1, max: 3, slack: 65536}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX BrokerTopicMetrics; kubemq-server services/metrics/exporter.go KafkaCollector)
+  - id: operations.metrics.per-topic-labels
+    group: broker-metrics
+    title: "Records produced are exported per topic (Kafka MessagesInPerSec, BytesInPerSec and BytesOutPerSec carry a topic label)"
+    workload: produce-consume
+    kafka: {name: "kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec:Count", labels: {topic: "${topic}"}}
+    kubemq: {name: kubemq_kafka_topic_messages_total, labels: {op: produced, topic: "${topic}"}}
+    expect: {kind: delta-exact, of: records}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX BrokerTopicMetrics per topic; kubemq-server services/metrics/exporter.go kubemq_kafka_topic_messages_total, by op, topic and partition)
+  - id: operations.metrics.produce-requests
+    group: broker-metrics
+    title: "Produce requests (Kafka TotalProduceRequestsPerSec) are counted"
+    workload: produce-consume
+    kafka: {name: "kafka.server:type=BrokerTopicMetrics,name=TotalProduceRequestsPerSec:Count", labels: {topic: "${topic}"}}
+    kubemq: {name: kubemq_kafka_operations_total, labels: {operation: produce}}
+    expect: {kind: delta-positive}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX BrokerTopicMetrics; kubemq-server services/metrics/exporter.go KafkaCollector)
+  - id: operations.metrics.fetch-requests
+    group: broker-metrics
+    title: "Fetch requests (Kafka TotalFetchRequestsPerSec) are counted"
+    workload: produce-consume
+    kafka: {name: "kafka.server:type=BrokerTopicMetrics,name=TotalFetchRequestsPerSec:Count", labels: {topic: "${topic}"}}
+    kubemq: {name: kubemq_kafka_operations_total, labels: {operation: fetch}}
+    expect: {kind: delta-positive}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX BrokerTopicMetrics; kubemq-server services/metrics/exporter.go KafkaCollector)
+  # --- Errors ------------------------------------------------------------------------------
+  # Kafka's FailedProduceRequestsPerSec is not mapped: by design it skips expected refusals
+  # (record too large, unknown topic, not leader) and counts only unexpected broker failures and
+  # record-validation errors, while KubeMQ's kubemq_kafka_produce_rejects_total counts every
+  # refusal. Refusals are compared by error code below.
+  - id: operations.metrics.errors-by-code
+    group: broker-errors
+    title: "Produce errors by error code (Kafka RequestMetrics ErrorsPerSec, MESSAGE_TOO_LARGE): each of the 3 refused records counted once under that code"
+    workload: produce-rejected
+    kafka: {name: "kafka.network:type=RequestMetrics,name=ErrorsPerSec:Count", labels: {request: Produce, error: MESSAGE_TOO_LARGE}}
+    kubemq: {name: kubemq_kafka_produce_rejects_total, labels: {error_code: "10"}}
+    expect: {kind: delta-exact, of: rejected}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX RequestMetrics; kubemq-server services/metrics/exporter.go KafkaCollector)
+  # --- Request latency ---------------------------------------------------------------------
+  - id: operations.metrics.produce-latency
+    group: request-latency
+    title: "Produce request latency histogram (Kafka RequestMetrics TotalTimeMs, Produce) records observations"
+    workload: produce-consume
+    kafka: {name: "kafka.network:type=RequestMetrics,name=TotalTimeMs:Count", labels: {request: Produce}}
+    kubemq: {name: kubemq_kafka_produce_admit_to_ack_seconds_count}
+    expect: {kind: delta-positive}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX RequestMetrics; kubemq-server connectors/kafka/metrics_perf.go)
+  - id: operations.metrics.fetch-latency
+    group: request-latency
+    title: "Consumer fetch latency histogram (Kafka RequestMetrics TotalTimeMs, FetchConsumer) records observations"
+    workload: produce-consume
+    kafka: {name: "kafka.network:type=RequestMetrics,name=TotalTimeMs:Count", labels: {request: FetchConsumer}}
+    kubemq: {name: kubemq_kafka_fetch_handler_duration_seconds_count}
+    expect: {kind: delta-positive}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX RequestMetrics; kubemq-server connectors/kafka/metrics_perf.go)
+  # --- Partition and replica health --------------------------------------------------------
+  - id: operations.metrics.active-controller
+    group: replica-health
+    title: "Active controller (Kafka ActiveControllerCount) reads 1 on a single node"
+    workload: idle
+    kafka: {name: "kafka.controller:type=KafkaController,name=ActiveControllerCount:Value"}
+    kubemq: {name: kubemq_cluster_leader}
+    expect: {kind: gauge-equals, value: 1}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX KafkaController; kubemq-server services/metrics/cluster_collector.go)
+  - id: operations.metrics.under-replicated
+    group: replica-health
+    title: "Under-replicated partitions (Kafka UnderReplicatedPartitions) reads 0 on a healthy broker"
+    workload: idle
+    kafka: {name: "kafka.server:type=ReplicaManager,name=UnderReplicatedPartitions:Value"}
+    kubemq: {name: kubemq_kafka_under_replicated_partitions}
+    expect: {kind: gauge-equals, value: 0}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX ReplicaManager; kubemq-server connectors/kafka/partition_health.go, partitions this node leads)
+  - id: operations.metrics.under-min-isr
+    group: replica-health
+    title: "Partitions under min.insync.replicas (Kafka UnderMinIsrPartitionCount) reads 0 on a healthy broker"
+    workload: idle
+    kafka: {name: "kafka.server:type=ReplicaManager,name=UnderMinIsrPartitionCount:Value"}
+    kubemq: {name: kubemq_kafka_under_min_isr_partitions}
+    expect: {kind: gauge-equals, value: 0}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX ReplicaManager; kubemq-server connectors/kafka/partition_health.go, partitions this node leads)
+  - id: operations.metrics.offline-partitions
+    group: replica-health
+    title: "Offline partitions (Kafka OfflinePartitionsCount) reads 0 on a healthy broker"
+    workload: idle
+    kafka: {name: "kafka.controller:type=KafkaController,name=OfflinePartitionsCount:Value"}
+    kubemq: {name: kubemq_kafka_offline_partitions}
+    expect: {kind: gauge-equals, value: 0}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX KafkaController; kubemq-server connectors/kafka/partition_health.go, reported by the control-shard leader as Kafka's active controller does)
+  - id: operations.metrics.leadership
+    group: replica-health
+    title: "Leadership is reported (Kafka LeaderCount at least 1; KubeMQ shard leadership at least 1)"
+    workload: idle
+    kafka: {name: "kafka.server:type=ReplicaManager,name=LeaderCount:Value"}
+    kubemq: {name: kubemq_shard_leader}
+    expect: {kind: gauge-range, min: 1, max: 100000}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX ReplicaManager; kubemq-server services/metrics/cluster_collector.go; KubeMQ counts Raft shards, not partitions)
+  # --- Log -----------------------------------------------------------------------------------
+  - id: operations.metrics.log-end-offset
+    group: log
+    title: "Log end offset per partition (Kafka Log LogEndOffset) sums to the records produced"
+    workload: produce-consume
+    kafka: {name: "kafka.log:type=Log,name=LogEndOffset:Value", labels: {topic: "${topic}"}}
+    kubemq: {name: kubemq_kafka_log_end_offset, labels: {topic: "${topic}"}}
+    expect: {kind: gauge-equals, of: records}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX Log; kubemq-server services/metrics/exporter.go kubemq_kafka_log_end_offset, by topic and partition)
+  - id: operations.metrics.log-size
+    group: log
+    title: "Log size on disk per partition (Kafka Log Size) reflects the payload (1x to 2x)"
+    workload: produce-consume
+    kafka: {name: "kafka.log:type=Log,name=Size:Value", labels: {topic: "${topic}"}}
+    kubemq: {name: kubemq_kafka_log_size_bytes, labels: {topic: "${topic}"}}
+    expect: {kind: gauge-range, of: payload_bytes, min: 1, max: 2}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX Log; kubemq-server services/metrics/exporter.go kubemq_kafka_log_size_bytes, retained record-batch bytes by topic and partition)
+  # --- Connections and process -------------------------------------------------------------
+  - id: operations.metrics.connections
+    group: process
+    title: "Open client connections (Kafka socket-server-metrics connection-count) count the held connection"
+    workload: idle
+    kafka: {name: "kafka.server:type=socket-server-metrics:connection-count", labels: {listener: HOST}}
+    kubemq: {name: kubemq_kafka_connections}
+    expect: {kind: gauge-range, min: 1, max: 1000}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka JMX socket-server-metrics; kubemq-server services/metrics/exporter.go KafkaCollector)
+  - id: operations.metrics.open-files
+    group: process
+    title: "Open file descriptors of the broker process are exported"
+    workload: idle
+    kafka: {name: "java.lang:type=OperatingSystem:OpenFileDescriptorCount"}
+    kubemq: {name: process_open_fds}
+    expect: {kind: gauge-range, min: 1, max: 10000000}
+    provenance: kubemq-authored
+    source: suites/operations (JVM OperatingSystem MBean; Prometheus Go client process collector)
+  # --- Consumer lag --------------------------------------------------------------------------
+  - id: operations.lag.group-lag
+    group: consumer-lag
+    title: "Consumer-group lag summed over partitions equals records produced minus records committed"
+    workload: group-lag
+    kafka: {name: "admin:consumer_group_lag", labels: {group: "${group}", topic: "${topic}"}}
+    kubemq: {name: kubemq_kafka_consumer_group_lag, labels: {group: "${group}", topic: "${topic}"}}
+    expect: {kind: gauge-equals, of: lag}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka admin API ListOffsets and OffsetFetch, as kafka-consumer-groups.sh computes lag; kubemq-server connectors/kafka/grouplag.go)
+  - id: operations.lag.partition-0
+    group: consumer-lag
+    title: "Consumer-group lag of partition 0 (committed 30 of 100) equals the admin-computed lag, 70"
+    workload: group-lag
+    kafka: {name: "admin:consumer_group_lag", labels: {group: "${group}", topic: "${topic}", partition: "0"}}
+    kubemq: {name: kubemq_kafka_consumer_group_lag, labels: {group: "${group}", topic: "${topic}", partition: "0"}}
+    expect: {kind: gauge-equals, of: lag_p0}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka admin API ListOffsets and OffsetFetch; kubemq-server connectors/kafka/grouplag.go)
+  - id: operations.lag.partition-1
+    group: consumer-lag
+    title: "Consumer-group lag of partition 1 (committed 40 of 100) equals the admin-computed lag, 60"
+    workload: group-lag
+    kafka: {name: "admin:consumer_group_lag", labels: {group: "${group}", topic: "${topic}", partition: "1"}}
+    kubemq: {name: kubemq_kafka_consumer_group_lag, labels: {group: "${group}", topic: "${topic}", partition: "1"}}
+    expect: {kind: gauge-equals, of: lag_p1}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka admin API ListOffsets and OffsetFetch; kubemq-server connectors/kafka/grouplag.go)
+  - id: operations.lag.partition-2
+    group: consumer-lag
+    title: "Consumer-group lag of partition 2 (committed 50 of 100) equals the admin-computed lag, 50"
+    workload: group-lag
+    kafka: {name: "admin:consumer_group_lag", labels: {group: "${group}", topic: "${topic}", partition: "2"}}
+    kubemq: {name: kubemq_kafka_consumer_group_lag, labels: {group: "${group}", topic: "${topic}", partition: "2"}}
+    expect: {kind: gauge-equals, of: lag_p2}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka admin API ListOffsets and OffsetFetch; kubemq-server connectors/kafka/grouplag.go)
+  - id: operations.lag.caught-up
+    group: consumer-lag
+    title: "A group that committed every partition at its end reports lag 0 (and keeps reporting it)"
+    workload: group-lag-zero
+    kafka: {name: "admin:consumer_group_lag", labels: {group: "${group}", topic: "${topic}"}}
+    kubemq: {name: kubemq_kafka_consumer_group_lag, labels: {group: "${group}", topic: "${topic}"}}
+    expect: {kind: gauge-equals, of: lag}
+    provenance: kubemq-authored
+    source: suites/operations (Kafka admin API; kubemq-server connectors/kafka/grouplag.go)
+  - id: operations.lag.active-member
+    group: consumer-lag
+    title: "A running consumer that is behind (live member, committed 30, 40 and 50 of 100 per partition): total lag 180"
+    workload: group-lag-active
+    kafka: {name: "admin:consumer_group_lag", labels: {group: "${group}", topic: "${topic}"}}
+    kubemq: {name: kubemq_kafka_consumer_group_lag, labels: {group: "${group}", topic: "${topic}"}}
+    expect: {kind: gauge-equals, of: lag}
+    provenance: kubemq-authored
+    source: suites/operations (franz-go group member; Kafka admin API; kubemq-server connectors/kafka/grouplag.go)
+  # --- Configuration mapping (docs/operations.md section 3) -----------------------------------
+  # Probe rows: the same admin action on Kafka, then on KubeMQ; the facts compared field by field.
+  - id: operations.config.topic-defaults
+    group: config-mapping
+    title: "A topic created with no configs: the default DescribeConfigs reports for cleanup.policy, compression.type, max.message.bytes, message.timestamp.type, min.insync.replicas, retention.bytes, retention.ms"
+    probe: topic-defaults
+    provenance: kubemq-authored
+    source: suites/operations/config (franz-go kadm)
+  - id: operations.config.segment-bytes
+    group: config-mapping
+    title: "A topic created with no configs: the segment.bytes DescribeConfigs reports"
+    probe: segment-bytes
+    provenance: kubemq-authored
+    source: suites/operations/config (franz-go kadm); KubeMQ reports its engine segment size (STORE_NEXT_SEGMENT_SIZE)
+  - id: operations.config.create-defaults
+    group: config-mapping
+    title: "CreateTopics with partitions -1 and replication factor -1 (broker defaults): accepted, and the partition and replica counts created"
+    probe: create-defaults
+    provenance: kubemq-authored
+    source: suites/operations/config (franz-go kadm)
+  - id: operations.config.unknown-topic-key
+    group: config-mapping
+    title: "CreateTopics with a config key Kafka does not define: refused or accepted, and whether DescribeConfigs echoes it"
+    probe: unknown-topic-key
+    provenance: kubemq-authored
+    source: suites/operations/config (franz-go kadm)
+  - id: operations.config.min-insync-zero
+    group: config-mapping
+    title: "CreateTopics with min.insync.replicas=0 is refused with INVALID_CONFIG"
+    probe: min-insync-zero
+    provenance: kubemq-authored
+    source: suites/operations/config (franz-go kadm)
+  - id: operations.config.auto-create
+    group: config-mapping
+    title: "auto.create.topics.enable: a producer that allows auto-creation writes to a missing topic; the topic and its partition and replica counts"
+    probe: auto-create
+    provenance: kubemq-authored
+    source: suites/operations/config (franz-go producer with AllowAutoTopicCreation, as the Java producer defaults)
+  - id: operations.config.txn-timeout-too-big
+    group: config-mapping
+    title: "transaction.max.timeout.ms: a transactional producer asking for 900001 ms (default maximum + 1) is refused"
+    probe: txn-timeout-too-big
+    provenance: kubemq-authored
+    source: suites/operations/config (franz-go transactional producer)

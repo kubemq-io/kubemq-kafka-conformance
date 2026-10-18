@@ -1,0 +1,60 @@
+# Apache Kafka oracle: KRaft single node, broker and controller in one process.
+# Image pinned by digest in compose/versions.env. Started by runner/certify.sh with
+#   <engine> compose --env-file compose/versions.env -f compose/kafka-oracle.yaml up -d
+#
+# Two client listeners:
+#   HOST     clients on the host dial 127.0.0.1:${KAFKA_HOST_PORT} (not "localhost": ports are
+#            published on IPv4 loopback only, and "localhost" also resolves to the IPv6 ::1)
+#   GATEWAY  clients in containers dial ${HOST_GATEWAY_ALIAS}:${KAFKA_GATEWAY_PORT}
+# HOST_GATEWAY_ALIAS is set by the runner. The broker only advertises the name; it never
+# resolves it, so the broker container needs no host-gateway mapping of its own (older
+# engines reject that mapping). Client containers get the mapping from the runner.
+# CERT_RUN_ID (set by runner/certify.sh) makes project and container names unique per run, so
+# two runs can share a machine.
+name: kcert-oracle-${CERT_RUN_ID:?CERT_RUN_ID is set by runner/certify.sh}
+services:
+  kafka:
+    image: ${KAFKA_IMAGE_REPO}@${KAFKA_IMAGE_DIGEST}
+    container_name: kcert-kafka-oracle-${CERT_RUN_ID:?CERT_RUN_ID is set by runner/certify.sh}
+    hostname: kafka-oracle
+    ports:
+      - "${CERT_BIND_ADDR:-127.0.0.1}:${KAFKA_HOST_PORT}:${KAFKA_HOST_PORT}"
+      - "${CERT_BIND_ADDR:-127.0.0.1}:${KAFKA_GATEWAY_PORT}:${KAFKA_GATEWAY_PORT}"
+    environment:
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: HOST://0.0.0.0:${KAFKA_HOST_PORT},GATEWAY://0.0.0.0:${KAFKA_GATEWAY_PORT},CONTROLLER://localhost:9093
+      KAFKA_ADVERTISED_LISTENERS: HOST://127.0.0.1:${KAFKA_HOST_PORT},GATEWAY://${HOST_GATEWAY_ALIAS:?HOST_GATEWAY_ALIAS is set by runner/certify.sh}:${KAFKA_GATEWAY_PORT}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: HOST:PLAINTEXT,GATEWAY:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: HOST
+      # Single node: internal topics cannot have more than one copy.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+      KAFKA_NUM_PARTITIONS: "1"
+      # Background cadences only, so log-semantics rows finish in seconds, not minutes (the
+      # defaults are 5 minutes for retention checks and 15 seconds for the cleaner backoff).
+      # Documented in docs/methodology.md; KubeMQ runs its defaults.
+      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: "1000"
+      KAFKA_LOG_CLEANER_BACKOFF_MS: "1000"
+      # Symmetric broker configuration (docs/methodology.md): committed offsets of an empty group
+      # expire after 1 minute on both brokers, for the offset-retention row. The check cadence
+      # below is oracle-only (Kafka's default is 10 minutes).
+      KAFKA_OFFSETS_RETENTION_MINUTES: "1"
+      KAFKA_OFFSETS_RETENTION_CHECK_INTERVAL_MS: "5000"
+      # JMX for the operations track's metric rows (suites/operations/oracle-jmx.sh runs
+      # kafka-jmx.sh inside this container). Container-local, never published. The image's launch
+      # script turns KAFKA_JMX_PORT into JMX_PORT for the broker process only, so CLI tools run
+      # with exec in this container do not try to bind the same port.
+      KAFKA_JMX_PORT: "9999"
+      KAFKA_JMX_HOSTNAME: localhost
+      # The log lives on the tmpfs below (memory, fresh every run). Without this the image writes
+      # to its default /tmp/kafka-logs on the container's disk layer and the tmpfs is unused.
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+    tmpfs:
+      - /tmp/kraft-combined-logs

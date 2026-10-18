@@ -1,0 +1,16 @@
+# Track registry: <name> <tier>, in run order. Tier quick runs in --quick and --full;
+# tier full runs only in --full. A track without suites/<name>/track.sh is reported NOT-RUN.
+# Tier opt-in runs only when asked for (--full --include-opt-in, or --track <name>) and only after
+# the operator accepts the license its track.env names (TRACK_LICENSE, TRACK_LICENSE_ACCEPT_VAR=yes).
+# An opt-in track that did not run is listed as such and never fails a report.
+protocol   quick
+features   full
+transactions full
+clients    full
+app-sim    full
+tools      full
+security   full
+perf       full
+operations full
+migration  full
+schema-registry opt-in

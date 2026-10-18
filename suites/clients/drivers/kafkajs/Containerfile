@@ -1,0 +1,10 @@
+# KafkaJS driver of the clients track (SCENARIO.md), on the pinned Node image of
+# suites/clients/clients.env; package-lock.json pins the dependency graph by integrity hash.
+ARG RUNTIME_IMAGE
+FROM ${RUNTIME_IMAGE}
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --no-audit --no-fund
+COPY driver.js ./
+USER 65532:65532
+ENTRYPOINT ["node", "/app/driver.js"]

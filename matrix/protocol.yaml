@@ -1,0 +1,41 @@
+# Track A transcript-parity rows. Each row runs one scenario with one driver against the Kafka
+# oracle, then against KubeMQ with only the bootstrap address changed.
+#
+#   driver kgo        full transcript: every produce ack, fetch, ListOffsets, Metadata and
+#                     transaction event is normalized and diffed against the oracle's.
+#   driver sarama,    smoke: produce and consume round-trip checked for success on both brokers.
+#   driver segmentio
+#
+# A row whose scenario or driver the suite does not know is reported NOT-RUN, never dropped.
+track: protocol
+rows:
+  - id: protocol.core.kgo
+    title: "Core flow, full transcript (franz-go): create topic, keyed and unkeyed produce with headers, fetch, ListOffsets, Metadata"
+    scenario: core
+    driver: kgo
+    provenance: kubemq-authored
+    source: kubemq-server tests/kafka-conformance/scenario_core.go
+  - id: protocol.multipartition.kgo
+    title: "Multi-partition flow, full transcript (franz-go): per-partition offsets and per-key order"
+    scenario: multipartition
+    driver: kgo
+    provenance: kubemq-authored
+    source: kubemq-server tests/kafka-conformance/scenario_multipartition.go
+  - id: protocol.transactions.kgo
+    title: "Transactions, full transcript (franz-go): commit, abort, read_committed vs read_uncommitted, last stable offset"
+    scenario: transactions
+    driver: kgo
+    provenance: kubemq-authored
+    source: kubemq-server tests/kafka-conformance/scenario_transactions.go
+  - id: protocol.core.sarama
+    title: "Core flow, produce and consume round-trip (sarama)"
+    scenario: core
+    driver: sarama
+    provenance: kubemq-authored
+    source: kubemq-server tests/kafka-conformance/driver_sarama.go
+  - id: protocol.core.segmentio
+    title: "Core flow, produce, consume and consumer-group commit/resume (segmentio/kafka-go)"
+    scenario: core
+    driver: segmentio
+    provenance: kubemq-authored
+    source: kubemq-server tests/kafka-conformance/driver_segmentio.go

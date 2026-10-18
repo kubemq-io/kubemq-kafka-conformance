@@ -1,0 +1,4 @@
+# Legacy row: confluent-kafka 2.6.1 (bundles librdkafka 2.6.1); wheels for linux amd64 and arm64, by hash.
+confluent-kafka==2.6.1 \
+    --hash=sha256:298aa323eb8507862ccfa619367667b41ab76ddf3657e8a45dafe4b270208257 \
+    --hash=sha256:0c2b63f7f764dc504296a8a474a3f09e408a456626cf938635eb31f59cac59fa

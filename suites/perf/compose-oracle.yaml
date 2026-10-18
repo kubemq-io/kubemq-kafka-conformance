@@ -1,0 +1,33 @@
+# Apache Kafka for the performance baseline (Track H): the pinned oracle image, single-node KRaft,
+# its log directory on the machine's persistent disk (bind mount of POSTURE_DIR/kafka-data, written
+# by "track.sh prepare"), broker defaults otherwise: no per-write fsync, the OS page cache flushes
+# (log.flush.* unset). Booted by runner/lib/brokers.sh (posture_up) with the POSTURE_* variables.
+name: kcert-perf-oracle-${CERT_RUN_ID:?CERT_RUN_ID is set by runner/certify.sh}
+services:
+  kafka:
+    image: ${KAFKA_IMAGE_REPO}@${KAFKA_IMAGE_DIGEST}
+    container_name: ${POSTURE_ORACLE_CONTAINER:?set by runner/certify.sh}
+    hostname: kafka-perf
+    ports:
+      - "${CERT_BIND_ADDR:-127.0.0.1}:${POSTURE_ORACLE_PORT}:${POSTURE_ORACLE_PORT}"
+      - "${CERT_BIND_ADDR:-127.0.0.1}:${POSTURE_ORACLE_ADMIN_PORT}:${POSTURE_ORACLE_ADMIN_PORT}"
+    environment:
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # CLIENT: load tools in client containers, through the host-gateway alias. ADMIN: the runner's
+      # readiness check from the host.
+      KAFKA_LISTENERS: CLIENT://0.0.0.0:${POSTURE_ORACLE_PORT},ADMIN://0.0.0.0:${POSTURE_ORACLE_ADMIN_PORT},CONTROLLER://localhost:9093
+      KAFKA_ADVERTISED_LISTENERS: CLIENT://${HOST_GATEWAY_ALIAS:?set by runner/certify.sh}:${POSTURE_ORACLE_PORT},ADMIN://localhost:${POSTURE_ORACLE_ADMIN_PORT}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CLIENT:PLAINTEXT,ADMIN:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: ADMIN
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    volumes:
+      - "${POSTURE_DIR:?set by runner/certify.sh}/kafka-data:/var/lib/kafka/data"

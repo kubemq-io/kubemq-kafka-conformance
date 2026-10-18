@@ -1,0 +1,44 @@
+# Migration track rows (docs/migration.md): the cutover procedure from Apache Kafka to KubeMQ
+# and the rollback, run as evidence. Each row runs twice with only the target changed: the oracle
+# leg migrates from a source Kafka to the Kafka oracle, the KubeMQ leg from the same kind of source
+# Kafka to KubeMQ (rollback rows reverse the direction). MirrorMaker 2 itself (mirror identity,
+# internal topics, end-of-partition offset translation, both directions) is proven by the tools
+# track's tools.mm2.* rows; these rows build on it.
+#
+track: migration
+rows:
+  - id: migration.offsets.mid-log
+    group: offset-translation
+    title: "Groups committed mid-partition while records keep arriving: every translated offset is at or below the source commit (a failed-over consumer never skips)"
+    provenance: kubemq-authored
+    source: suites/migration (MirrorMaker 2 from the pinned Kafka image; checks per KIP-545 offset translation semantics)
+  - id: migration.cutover.resume.franz-go
+    group: cutover
+    title: "After cutover a franz-go consumer of the migrated group resumes on the target at the translated offsets: nothing skipped, no duplicates, in order"
+    provenance: kubemq-authored
+    source: suites/migration (franz-go v1.22.0 consumer)
+  - id: migration.cutover.resume.kafka-clients
+    group: cutover
+    title: "After cutover Kafka's own console consumer (Java kafka-clients 4.3.1) resumes the migrated group at the translated offsets: nothing skipped, no duplicates, in order"
+    provenance: upstream
+    source: suites/migration (kafka-console-consumer.sh from the pinned Kafka image)
+  - id: migration.mm2.compacted-fidelity
+    group: topic-fidelity
+    title: "A compacted source topic with updates and tombstones mirrors to a compacted target topic; the latest value per key and the deleted keys match the source"
+    provenance: kubemq-authored
+    source: suites/migration (MirrorMaker 2 from the pinned Kafka image)
+  - id: migration.mm2.transactional-fidelity
+    group: topic-fidelity
+    title: "A source topic with a committed (40 records) and an aborted (20 records) transaction, default MirrorMaker 2 settings: how many of each arrive on the target"
+    provenance: kubemq-authored
+    source: suites/migration (MirrorMaker 2 from the pinned Kafka image; transactional producer franz-go)
+  - id: migration.mm2.config-refusal
+    group: topic-fidelity
+    title: "A 3-partition source topic carrying retention.bytes: the mirrored topic's partition count, size bound and records"
+    provenance: kubemq-authored
+    source: suites/migration (MirrorMaker 2 from the pinned Kafka image)
+  - id: migration.rollback.end-to-end
+    group: rollback
+    title: "Rollback after the target took writes: reverse mirror to Kafka, the group's offsets translate back, a consumer resumes on Kafka without skipping"
+    provenance: kubemq-authored
+    source: suites/migration (MirrorMaker 2 from the pinned Kafka image; franz-go consumer)

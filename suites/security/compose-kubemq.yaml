@@ -1,0 +1,48 @@
+# KubeMQ under test for one security posture: the released image pinned by digest, configured by
+# the YAML suites/security/posture writes (passed as the image's CONFIG variable, base64, by
+# runner/lib/brokers.sh posture_up). The runner injects KUBEMQ_LICENSE_KEY; the track never sees it.
+name: kcert-posture-kubemq-${CERT_RUN_ID:?CERT_RUN_ID is set by runner/certify.sh}
+services:
+  kubemq:
+    image: ${KUBEMQ_IMAGE_REPO}@${KUBEMQ_IMAGE_DIGEST}
+    container_name: ${POSTURE_KUBEMQ_CONTAINER:?set by runner/certify.sh}
+    hostname: kubemq
+    ports:
+      - "${CERT_BIND_ADDR:-127.0.0.1}:${POSTURE_KUBEMQ_PORT}:${POSTURE_KUBEMQ_PORT}"
+      - "${CERT_BIND_ADDR:-127.0.0.1}:${POSTURE_KUBEMQ_TLS_PORT}:${POSTURE_KUBEMQ_TLS_PORT}"
+      - "${CERT_BIND_ADDR:-127.0.0.1}:${POSTURE_KUBEMQ_API_PORT}:${POSTURE_KUBEMQ_API_PORT}"
+    environment:
+      KUBEMQ_LICENSE_KEY: ${KUBEMQ_LICENSE_KEY:?KUBEMQ_LICENSE_KEY is not set. Request a KubeMQ evaluation key and export it before running.}
+      CONFIG: ${POSTURE_KUBEMQ_CONFIG:?set by runner/lib/brokers.sh}
+      # Only the Kafka connector is under test (same switches as compose/kubemq-single.yaml).
+      CONNECTORS_AMQP_ENABLE: "false"
+      CONNECTORS_AMQP_MANAGEMENT_ENABLE: "false"
+      CONNECTORS_AMQP10_ENABLE: "false"
+      CONNECTORSMQTT_ENABLE: "false"
+      CONNECTORS_STOMP_ENABLE: "false"
+      CONNECTORS_AWS_ENABLE: "false"
+      CONNECTORS_GCP_ENABLE: "false"
+    tmpfs:
+      - /kubemq/store:mode=1777
+    # The machine's license folder, as in compose/kubemq-single.yaml: later boots reuse the lease.
+    volumes:
+      - license:/kubemq/store/license
+    depends_on:
+      - oidc
+  # Static file server for the token issuer's discovery document and key set
+  # (POSTURE_DIR/oidc, written by suites/security/oidc). KubeMQ fetches them at boot when an
+  # OAUTHBEARER issuer is configured; in other postures the directory is empty and unused. Not
+  # under test; pinned by digest (busybox 1.37.0 index).
+  oidc:
+    image: docker.io/library/busybox@sha256:bdf57e528e45e4433820e045b29b4597825a1c9e38353532d90a01445013f82e
+    hostname: kcert-oidc
+    networks:
+      default:
+        aliases: [kcert-oidc]
+    command: ["httpd", "-f", "-p", "8080", "-h", "/posture/oidc"]
+    volumes:
+      - "${POSTURE_DIR:?set by runner/certify.sh}:/posture:ro"
+volumes:
+  license:
+    external: true
+    name: ${KUBEMQ_LICENSE_VOLUME:?KUBEMQ_LICENSE_VOLUME is set by runner/certify.sh}

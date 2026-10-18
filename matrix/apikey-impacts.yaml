@@ -1,0 +1,148 @@
+# Curated impact table for matrix/apikeys.yaml. One entry per ApiKey that KubeMQ does not
+# advertise, or advertises with a narrower version range than the Kafka oracle. The generator
+# refuses to run if a key in that state has no entry here.
+#
+#   breaks  the named tool, client path or feature a user would see fail or degrade
+#   impact  what actually happens, in one or two sentences
+#
+# This table records impact only. Whether a row is a pre-registered GAP is decided in
+# docs/gaps.md with reviewer sign-off, never here.
+impacts:
+  # --- Advertised with a narrower version range: clients negotiate down ---------------------
+  - key: 0
+    breaks: "Producers that rely on Produce v10+; client feature detection that reads the advertised minimum version"
+    impact: "Modern clients negotiate down to Produce v9 and work. Lost: v10+ leader-discovery hints on NOT_LEADER (KIP-951), transaction-version-2 produce (KIP-890), topic IDs in Produce. Kafka 4.x still advertises v0-v2 but refuses them, so clients limited to v0-v2 fail on both brokers; the difference is only the advertised minimum, which older librdkafka reads for feature detection (covered by the legacy librdkafka client row)."
+  - key: 1
+    breaks: "Consumers and tools that rely on Fetch v13+ (topic IDs, KIP-951 leader hints)"
+    impact: "Clients negotiate down to Fetch v12 and fetch by topic name. Lost: topic IDs in Fetch (KIP-516) and leader-discovery hints (KIP-951)."
+  - key: 2
+    breaks: "kafka-get-offsets.sh and admin calls with tiered-storage offset specs (--time -4, -5, -6)"
+    impact: "Clients negotiate down to ListOffsets v7: earliest, latest, by timestamp and max-timestamp work. Offset specs for tiered storage (earliest-local, latest-tiered, earliest-pending-upload) are unavailable."
+  - key: 8
+    breaks: "Consumers using the KIP-848 consumer group protocol (group.protocol=consumer)"
+    impact: "Classic-protocol consumers commit with OffsetCommit v8 and work. v9+ (member epochs of the new group protocol, topic IDs) is unavailable."
+  - key: 9
+    breaks: "Admin clients that batch offset fetches for many groups in one request (KIP-709); KIP-848 consumers"
+    impact: "Clients negotiate down to OffsetFetch v7, one group per request; batching admin clients fall back to one request per group. v9+ (new group protocol member epochs, topic IDs) is unavailable. The planned multi-group OffsetFetch row in Track B (offsets) is expected to land as GAP under this registration, not FAIL."
+  - key: 10
+    breaks: "Clients that batch coordinator lookups (KIP-699)"
+    impact: "Clients negotiate down to FindCoordinator v3 and look up one coordinator per request. Batched lookups and the transaction-abortable error code of v5 (KIP-890) are unavailable."
+  - key: 11
+    breaks: "Join reasons in broker logs (KIP-800); JoinGroup v7+ protocol-type checks"
+    impact: "Clients negotiate down to JoinGroup v5 and classic groups work. Join reasons and the v7+ protocol type and name fields are not exchanged."
+  - key: 13
+    breaks: "Leave reasons in broker logs (KIP-800)"
+    impact: "Clients negotiate down to LeaveGroup v4. The leave reason string is not exchanged."
+  - key: 14
+    breaks: "SyncGroup v5 protocol type and name validation (KIP-559)"
+    impact: "Clients negotiate down to SyncGroup v3 and classic groups work. The v4+ flexible encoding and v5 protocol fields are not used."
+  - key: 18
+    breaks: "Tools that request ApiVersions v4"
+    impact: "Clients negotiate down to ApiVersions v3. No practical effect on clients; see the feature rows for what KubeMQ advertises in that response."
+  - key: 22
+    breaks: "Producers using transaction version 2 (KIP-890 part 2)"
+    impact: "Transactional and idempotent producers negotiate down to InitProducerId v4 and use transaction version 1. Version-2 epoch bumping per transaction is unavailable."
+  - key: 24
+    breaks: "Broker-side transaction verification (KIP-890 part 1); transaction version 2"
+    impact: "Producers negotiate down to AddPartitionsToTxn v3 and transactions work. The v4+ batched verification form, used between brokers, is unavailable."
+  - key: 25
+    breaks: "Transaction-abortable error code (KIP-890)"
+    impact: "Producers negotiate down to AddOffsetsToTxn v3. The v4 abortable error code is not returned."
+  - key: 26
+    breaks: "Producers using transaction version 2 (KIP-890 part 2)"
+    impact: "Producers negotiate down to EndTxn v4 and use transaction version 1."
+  - key: 28
+    breaks: "Producers using transaction version 2 (KIP-890 part 2); transaction-abortable error code"
+    impact: "Producers negotiate down to TxnOffsetCommit v3 and send-offsets-to-transaction works with transaction version 1."
+  # --- Not advertised: client- or tool-facing ------------------------------------------------
+  - key: 33
+    breaks: "Legacy non-incremental config alteration: Admin clients older than 2.3, sarama AlterConfigs, librdkafka rd_kafka_AlterConfigs"
+    impact: "Fails. kafka-configs.sh and current Admin clients use IncrementalAlterConfigs (key 44), which is the supported path."
+  - key: 34
+    breaks: "kafka-reassign-partitions.sh moves between log directories"
+    impact: "Fails. KubeMQ has no Kafka log directories to move replicas between."
+  - key: 35
+    breaks: "kafka-log-dirs.sh; tools and UIs that read topic size on disk from DescribeLogDirs"
+    impact: "Fails. Disk usage per topic and partition must be read from KubeMQ's own metrics."
+  - key: 38
+    breaks: "kafka-delegation-tokens.sh --create; delegation-token authentication"
+    impact: "Fails. Delegation tokens are not supported."
+  - key: 39
+    breaks: "kafka-delegation-tokens.sh --renew"
+    impact: "Fails. Delegation tokens are not supported."
+  - key: 40
+    breaks: "kafka-delegation-tokens.sh --expire"
+    impact: "Fails. Delegation tokens are not supported."
+  - key: 41
+    breaks: "kafka-delegation-tokens.sh --describe"
+    impact: "Fails. Delegation tokens are not supported."
+  - key: 43
+    breaks: "kafka-leader-election.sh"
+    impact: "Fails. Leadership is managed by KubeMQ's Raft layer and cannot be forced from Kafka tools."
+  - key: 45
+    breaks: "kafka-reassign-partitions.sh --execute; Cruise Control rebalancing"
+    impact: "Fails. Every topic has one copy per node; there are no replica assignments to move."
+  - key: 46
+    breaks: "kafka-reassign-partitions.sh --verify / --list; Cruise Control"
+    impact: "Fails. There are no in-flight reassignments to list."
+  - key: 55
+    breaks: "kafka-metadata-quorum.sh describe"
+    impact: "Fails. KubeMQ has no KRaft controller quorum; cluster state is read from KubeMQ's own API."
+  - key: 57
+    breaks: "kafka-features.sh upgrade / downgrade"
+    impact: "Fails. Feature levels cannot be changed from Kafka tools."
+  - key: 61
+    breaks: "kafka-transactions.sh describe-producers; hanging-transaction detection (KIP-664)"
+    impact: "Fails. Active producer state per partition cannot be inspected."
+  - key: 65
+    breaks: "kafka-transactions.sh describe; hanging-transaction recovery"
+    impact: "Fails. A transaction's state cannot be inspected from Kafka tools."
+  - key: 66
+    breaks: "kafka-transactions.sh list / find-hanging"
+    impact: "Fails. Open transactions cannot be listed from Kafka tools."
+  - key: 68
+    breaks: "Consumers with group.protocol=consumer (KIP-848)"
+    impact: "Fails. The new consumer group protocol is planned with no version; set group.protocol=classic."
+  - key: 69
+    breaks: "kafka-consumer-groups.sh --describe on KIP-848 groups; Admin describeConsumerGroups for the new protocol"
+    impact: "Fails for new-protocol groups, which cannot exist on KubeMQ today. Classic groups are described with DescribeGroups (key 15)."
+  - key: 88
+    breaks: "Kafka Streams with group.protocol=streams (KIP-1071)"
+    impact: "Fails. Streams applications use the classic rebalance protocol."
+  - key: 89
+    breaks: "kafka-streams-groups.sh and Admin describe for KIP-1071 streams groups"
+    impact: "Fails. Streams groups of the new protocol cannot exist on KubeMQ."
+  # --- Not advertised: broker-internal or controller-only, no client path --------------------
+  - key: 27
+    scope: broker-internal
+    breaks: "None for clients (broker-to-broker transaction markers)"
+    impact: "No client or tool sends this request. KubeMQ writes transaction markers internally."
+  - key: 64
+    breaks: "kafka-cluster.sh unregister (KRaft broker registration)"
+    impact: "Fails. KubeMQ nodes are not registered with a KRaft controller."
+  - key: 80
+    breaks: "kafka-metadata-quorum.sh add-controller (KIP-853)"
+    impact: "Fails. KubeMQ has no KRaft controller quorum."
+  - key: 81
+    breaks: "kafka-metadata-quorum.sh remove-controller (KIP-853)"
+    impact: "Fails. KubeMQ has no KRaft controller quorum."
+  - key: 83
+    scope: broker-internal
+    breaks: "None for clients (share coordinator state persistence, broker-internal)"
+    impact: "No client or tool sends this request. KubeMQ persists share-group state internally."
+  - key: 84
+    scope: broker-internal
+    breaks: "None for clients (share coordinator state persistence, broker-internal)"
+    impact: "No client or tool sends this request."
+  - key: 85
+    scope: broker-internal
+    breaks: "None for clients (share coordinator state persistence, broker-internal)"
+    impact: "No client or tool sends this request."
+  - key: 86
+    scope: broker-internal
+    breaks: "None for clients (share coordinator state persistence, broker-internal)"
+    impact: "No client or tool sends this request."
+  - key: 87
+    scope: broker-internal
+    breaks: "None for clients (share coordinator state persistence, broker-internal)"
+    impact: "No client or tool sends this request."

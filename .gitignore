@@ -1,0 +1,6 @@
+# Raw logs and run scratch never go into git; only reports/<version>/REPORT.md and summary.json.
+.work/
+*.log
+.env
+.env.*
+/.license.txt

@@ -1,0 +1,19 @@
+# Confluent.Kafka (.NET) driver of the clients track (SCENARIO.md). Built on the pinned .NET SDK
+# image and run on the pinned .NET runtime image (suites/clients/clients.env); the NuGet lock file
+# pins the package graph by content hash.
+ARG BUILD_IMAGE
+ARG RUNTIME_IMAGE
+# The build stage runs on the building machine's own platform (the .NET SDK does not run reliably
+# under emulation); the published output is framework-dependent and carries librdkafka for both
+# linux-x64 and linux-arm64, so only the runtime stage is per architecture.
+FROM --platform=${BUILDPLATFORM} ${BUILD_IMAGE} AS build
+WORKDIR /src
+COPY driver.csproj packages.lock.json ./
+RUN dotnet restore --locked-mode
+COPY Program.cs ./
+RUN dotnet publish -c Release --no-restore -o /out
+
+FROM ${RUNTIME_IMAGE}
+COPY --from=build /out /app
+USER 65532:65532
+ENTRYPOINT ["dotnet", "/app/driver.dll"]

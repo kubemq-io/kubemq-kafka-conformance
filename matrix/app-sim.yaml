@@ -1,0 +1,12 @@
+# App-sim track: customer-style applications (suites/app-sim), ported from kubemq-server
+# tests/kafka-app-sim. A Java (kafka-clients) and a Python (confluent-kafka) orders application:
+# admin setup, idempotent producers with four codecs, consumer groups that rebalance under traffic,
+# and exactly-once consume-transform-produce with deliberate aborts. Every observable fact goes to a
+# ledger; verify.py decides PASS / FAIL / VOID from the ledgers and a fresh reader. The whole run
+# goes against the Kafka oracle first, then against KubeMQ with only the bootstrap address changed.
+track: app-sim
+rows:
+  - id: app-sim.orders-apps
+    title: "Java and Python orders applications (admin, idempotent produce with gzip/lz4/snappy/zstd, rebalancing consumer groups, exactly-once pipelines with aborts) verified by verify.py: no loss, no duplicates, per-customer order, committed offsets at the log end, aborted output invisible"
+    provenance: kubemq-authored
+    source: suites/app-sim (from kubemq-server tests/kafka-app-sim at fcd45d818; verifier suites/app-sim/verify.py, self-test in pr.yml)

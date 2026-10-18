@@ -1,0 +1,109 @@
+# Lint and verifier self-tests. Runs on every pull request, including from forks.
+# It never starts a broker, never needs the license key and has no secrets. It is the only
+# workflow in this repository: no license key is stored in GitHub and no workflow starts a broker.
+name: pr
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: suites/protocol/go.mod
+          cache-dependency-path: |
+            suites/protocol/go.sum
+            suites/features/go.sum
+            suites/operations/go.sum
+            suites/migration/go.sum
+            suites/perf/go.sum
+            suites/transactions/go.sum
+            suites/tools/go.sum
+            runner/report/go.sum
+            suites/clients/go.sum
+            suites/security/go.sum
+      - name: actionlint
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
+          "$(go env GOPATH)/bin/actionlint" .github/workflows/*.yml
+      - name: shellcheck
+        run: |
+          shellcheck -x runner/certify.sh runner/lib/engine.sh runner/lib/preflight.sh \
+            runner/lib/brokers.sh runner/bump-kubemq.sh runner/bump-kubemq-selftest.sh runner/regen-apikeys.sh runner/engine-selftest.sh runner/report/render.sh runner/report/merge.sh runner/report/check-known-deviations.sh suites/protocol/track.sh suites/features/track.sh suites/security/track.sh \
+            suites/transactions/track.sh \
+            suites/operations/track.sh suites/operations/oracle-jmx.sh \
+            suites/migration/track.sh \
+            suites/perf/track.sh suites/perf/ctl.sh \
+            suites/clients/track.sh suites/clients/build-driver.sh suites/app-sim/track.sh \
+            suites/tools/track.sh suites/tools/ctr.sh \
+            suites/verifier-selftest/run.sh
+      - name: gofmt and go vet
+        run: |
+          for m in suites/protocol suites/features suites/operations suites/transactions runner/report suites/clients suites/security suites/tools suites/migration suites/perf; do
+            unformatted="$(cd "$m" && gofmt -l .)"
+            if [ -n "$unformatted" ]; then echo "gofmt needed in $m: $unformatted"; exit 1; fi
+            (cd "$m" && go vet ./...)
+          done
+      - name: engine literals stay inside runner/lib/engine.sh
+        # Registry media types (application/vnd.docker.distribution...), the
+        # docker-content-digest header name and the docker.io registry host are registry
+        # protocol, not engine calls.
+        run: |
+          hits="$(git grep -nE '\bdocker\b|host\.docker\.internal|podman|host\.containers\.internal' -- '*.sh' '*.go' '*.yaml' '*.yml' \
+                   ':!runner/lib/engine.sh' ':!runner/engine-selftest.sh' ':!.github/workflows/pr.yml' | grep -vE ':[0-9]+:\s*(#|//)' \
+                 | grep -vE 'vnd\.docker\.distribution|docker-content-digest|docker\.io' || true)"
+          if [ -n "$hits" ]; then
+            echo "Engine-specific literals outside runner/lib/engine.sh:"; echo "$hits"; exit 1
+          fi
+      - name: gap register consistent with the matrices
+        run: (cd runner/report && go run ./cmd/check-gaps -root ../..)
+      - name: no raw logs or run output committed
+        run: |
+          bad="$(git ls-files | grep -E '(^|/)\.work/|\.log$|\.tar(\.gz)?$|\.tgz$' || true)"
+          if [ -n "$bad" ]; then echo "Committed run output:"; echo "$bad"; exit 1; fi
+  selftest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: suites/protocol/go.mod
+          cache-dependency-path: |
+            suites/protocol/go.sum
+            suites/features/go.sum
+            suites/operations/go.sum
+            suites/migration/go.sum
+            suites/perf/go.sum
+            suites/transactions/go.sum
+            suites/tools/go.sum
+            runner/report/go.sum
+            suites/clients/go.sum
+            suites/security/go.sum
+      - name: verifier mutation self-tests
+        run: suites/verifier-selftest/run.sh
+      - name: bump-kubemq self-test (fake registry, no network)
+        run: runner/bump-kubemq-selftest.sh
+      - name: engine self-test (fake engine that does not answer)
+        run: runner/engine-selftest.sh
+      - name: all unit tests
+        run: |
+          (cd suites/protocol && go test -count=1 ./...)
+          (cd suites/features && go test -count=1 ./...)
+          (cd suites/operations && go test -count=1 ./...)
+          (cd suites/migration && go test -count=1 ./...)
+          (cd suites/perf && go test -count=1 ./...)
+          (cd suites/transactions && go test -count=1 ./...)
+          (cd suites/tools && go test -count=1 ./...)
+          (cd runner/report && go test -count=1 ./...)
+          (cd suites/clients && go test -count=1 ./...)
+          (cd suites/security && go test -count=1 ./...)

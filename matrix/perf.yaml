@@ -1,0 +1,18 @@
+# Track H performance baseline: Apache Kafka's own kafka-producer-perf-test and
+# kafka-consumer-perf-test (pinned Kafka image), Kafka then KubeMQ on the same machine, one broker
+# running at a time, both brokers' data on the machine's persistent disk at their default sync
+# behaviour, single node, 6 partitions, producer defaults except acks, no compression, throughput
+# unthrottled; median of 3 repetitions after a warm-up. A reproducible baseline, not a benchmark
+# claim: a row's verdict asserts only that the measurement completed on both brokers; the numbers
+# are reported (docs/performance.md, reports/perf/), never judged.
+track: perf
+rows:
+  - {id: perf.produce.100b.acks-all, measurement: true, kind: produce, size: 100, acks: all, records: 3000000, title: "Produce 3,000,000 records of 100 bytes, acks=all: throughput and 99th-percentile latency", provenance: upstream, source: kafka-producer-perf-test (Apache Kafka 4.3.1)}
+  - {id: perf.produce.100b.acks-1, measurement: true, kind: produce, size: 100, acks: "1", records: 3000000, title: "Produce 3,000,000 records of 100 bytes, acks=1: throughput and 99th-percentile latency", provenance: upstream, source: kafka-producer-perf-test (Apache Kafka 4.3.1)}
+  - {id: perf.consume.100b, measurement: true, kind: consume, size: 100, records: 3000000, title: "Consume 3,000,000 records of 100 bytes: throughput", provenance: upstream, source: kafka-consumer-perf-test (Apache Kafka 4.3.1)}
+  - {id: perf.produce.1kib.acks-all, measurement: true, kind: produce, size: 1024, acks: all, records: 300000, title: "Produce 300,000 records of 1 KiB, acks=all: throughput and 99th-percentile latency", provenance: upstream, source: kafka-producer-perf-test (Apache Kafka 4.3.1)}
+  - {id: perf.produce.1kib.acks-1, measurement: true, kind: produce, size: 1024, acks: "1", records: 300000, title: "Produce 300,000 records of 1 KiB, acks=1: throughput and 99th-percentile latency", provenance: upstream, source: kafka-producer-perf-test (Apache Kafka 4.3.1)}
+  - {id: perf.consume.1kib, measurement: true, kind: consume, size: 1024, records: 300000, title: "Consume 300,000 records of 1 KiB: throughput", provenance: upstream, source: kafka-consumer-perf-test (Apache Kafka 4.3.1)}
+  - {id: perf.produce.10kib.acks-all, measurement: true, kind: produce, size: 10240, acks: all, records: 30000, title: "Produce 30,000 records of 10 KiB, acks=all: throughput and 99th-percentile latency", provenance: upstream, source: kafka-producer-perf-test (Apache Kafka 4.3.1)}
+  - {id: perf.produce.10kib.acks-1, measurement: true, kind: produce, size: 10240, acks: "1", records: 30000, title: "Produce 30,000 records of 10 KiB, acks=1: throughput and 99th-percentile latency", provenance: upstream, source: kafka-producer-perf-test (Apache Kafka 4.3.1)}
+  - {id: perf.consume.10kib, measurement: true, kind: consume, size: 10240, records: 30000, title: "Consume 30,000 records of 10 KiB: throughput", provenance: upstream, source: kafka-consumer-perf-test (Apache Kafka 4.3.1)}

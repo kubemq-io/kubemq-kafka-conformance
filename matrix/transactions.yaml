@@ -1,0 +1,172 @@
+# Track B transaction, idempotent-producer and exactly-once rows. Each row
+# names a client and a scenario (suites/transactions/SCENARIOS.md). The client's driver runs in a
+# client container against the Kafka oracle, then KubeMQ with only the bootstrap address changed;
+# suites/transactions/verify turns both drivers' facts into observations compared field by field.
+track: transactions
+rows:
+  # --- Transactions: isolation and the offset layout ------------------------------------------
+  - id: transactions.franz-go.isolation
+    group: transactions
+    client: franz-go
+    scenario: isolation
+    title: "commit, abort, commit: read_committed delivers only committed records, read_uncommitted every record; each commit or abort marker takes one offset; the open transaction pins the last stable offset"
+    provenance: kubemq-authored
+    source: suites/transactions/franz/isolation.go; ported from kubemq-server tests/kafka-conformance/scenario_transactions.go
+  - id: transactions.franz-go.send-offsets
+    group: transactions
+    client: franz-go
+    scenario: send-offsets
+    title: "send-offsets-to-transaction: a group's offsets committed inside a transaction become visible on commit, are discarded on abort, and a stable offset fetch answers UNSTABLE_OFFSET_COMMIT while they are pending"
+    provenance: kubemq-authored
+    source: suites/transactions/franz/sendoffsets.go (AddOffsetsToTxn + TxnOffsetCommit, as Java sendOffsetsToTransaction sends them)
+  - id: transactions.franz-go.consume-transform-produce
+    group: exactly-once
+    client: franz-go
+    scenario: consume-transform-produce
+    title: "consume-transform-produce through a consumer group, 60 records over 3 partitions, every third transaction aborted on purpose: every output committed exactly once in input order, group offsets at the input end"
+    provenance: kubemq-authored
+    source: suites/transactions/franz/cpp.go (franz-go GroupTransactSession); modelled on kubemq-server tests/kafka-conformance/real_cluster_txn_test.go and tests/kafka-app-sim
+  - id: transactions.franz-go.fencing
+    group: transactions
+    client: franz-go
+    scenario: fencing
+    title: "zombie fencing: a second producer with the same transactional.id aborts the first one's open transaction; the zombie's send and commit are refused with a fencing error and its records stay invisible to read_committed"
+    provenance: kubemq-authored
+    source: suites/transactions/franz/fencing.go
+  - id: transactions.franz-go.timeout-abort
+    group: transactions
+    client: franz-go
+    scenario: timeout-abort
+    title: "transaction.timeout.ms expiry: a transaction left open past 3 s is aborted by the broker (abort marker written), the late commit is refused, and a new producer with the same id commits"
+    provenance: kubemq-authored
+    source: suites/transactions/franz/fencing.go
+  - id: transactions.franz-go.timeout-limit
+    group: transactions
+    client: franz-go
+    scenario: timeout-limit
+    title: "transaction.timeout.ms above the broker's transaction.max.timeout.ms (900000) is refused with INVALID_TRANSACTION_TIMEOUT; exactly the maximum is accepted"
+    provenance: kubemq-authored
+    source: suites/transactions/franz/fencing.go (raw InitProducerId)
+  - id: transactions.franz-go.transaction-version
+    group: transactions
+    client: franz-go
+    scenario: transaction-version
+    title: "KIP-890 transaction version 2: the finalized transaction.version advertised in ApiVersions, and whether the producer epoch is bumped on every committed transaction"
+    provenance: kubemq-authored
+    source: suites/transactions/franz/cpp.go
+  - id: transactions.franz-go.compacted-read
+    group: transactions
+    client: franz-go
+    scenario: compacted-read
+    title: "compacted topic written only by transactions (commit, abort, commit), read with read_committed after the log cleaner rewrote it: latest committed value per key, no aborted value, aborted data discarded from the log"
+    provenance: kubemq-authored
+    source: suites/transactions/franz/compacted.go; cleaner settings as features.log.compaction (suites/features/probe/log.go)
+  # --- Idempotent producer (raw wire) ----------------------------------------------------------
+  - id: transactions.franz-go.idempotent-sequences
+    group: idempotent
+    client: franz-go
+    scenario: idempotent-sequences
+    title: "idempotent producer, hand-built batches: a resent batch is deduplicated at its first offset, a sequence gap is refused (OUT_OF_ORDER_SEQUENCE_NUMBER), an epoch bump restarts the sequence, a stale epoch is refused; the log holds every accepted record once"
+    provenance: kubemq-authored
+    source: suites/transactions/franz/wire.go (raw Produce v3+ record batches)
+  - id: transactions.franz-go.epoch-errors
+    group: idempotent
+    client: franz-go
+    scenario: epoch-errors
+    title: "stale producer epoch after a second InitProducerId for the same transactional.id: which error AddPartitionsToTxn, Produce, EndTxn and a recovering InitProducerId answer (InvalidProducerEpoch vs ProducerFenced on 4.x)"
+    provenance: kubemq-authored
+    source: suites/transactions/franz/wire.go (raw InitProducerId, AddPartitionsToTxn, Produce, EndTxn)
+  # --- Java kafka-clients 4.3.1 (the jar the Kafka image ships) -----------------------------
+  - id: transactions.java.isolation
+    group: transactions
+    client: java
+    scenario: isolation
+    title: "commit, abort, commit: read_committed delivers only committed records, read_uncommitted every record; one offset per marker; the open transaction pins the last stable offset"
+    provenance: kubemq-authored
+    source: suites/transactions/java/TxnDriver.java (kafka-clients 4.3.1)
+  - id: transactions.java.send-offsets
+    group: transactions
+    client: java
+    scenario: send-offsets
+    title: "sendOffsetsToTransaction(offsets, new ConsumerGroupMetadata(group)): offsets visible on commit, discarded on abort, a stable offset fetch waits while they are pending"
+    provenance: kubemq-authored
+    source: suites/transactions/java/TxnDriver.java (kafka-clients 4.3.1)
+  - id: transactions.java.consume-transform-produce
+    group: exactly-once
+    client: java
+    scenario: consume-transform-produce
+    title: "consume-transform-produce through a consumer group (classic protocol), 60 records over 3 partitions, every third transaction aborted and the consumer rewound: every output committed exactly once in input order, group offsets at the input end"
+    provenance: kubemq-authored
+    source: suites/transactions/java/TxnDriver.java (kafka-clients 4.3.1)
+  - id: transactions.java.fencing
+    group: transactions
+    client: java
+    scenario: fencing
+    title: "zombie fencing: a second producer with the same transactional.id aborts the first one's open transaction; the zombie's send and commit fail with a fencing error"
+    provenance: kubemq-authored
+    source: suites/transactions/java/TxnDriver.java (kafka-clients 4.3.1)
+  - id: transactions.java.timeout-abort
+    group: transactions
+    client: java
+    scenario: timeout-abort
+    title: "transaction.timeout.ms expiry: a transaction left open past 3 s is aborted by the broker, the late commit fails, a new producer with the same id commits"
+    provenance: kubemq-authored
+    source: suites/transactions/java/TxnDriver.java (kafka-clients 4.3.1)
+  - id: transactions.java.timeout-limit
+    group: transactions
+    client: java
+    scenario: timeout-limit
+    title: "initTransactions with transaction.timeout.ms above the broker maximum (900000) fails with INVALID_TRANSACTION_TIMEOUT; exactly the maximum is accepted"
+    provenance: kubemq-authored
+    source: suites/transactions/java/TxnDriver.java (kafka-clients 4.3.1)
+  # --- Upstream: Apache Kafka's transactions system test path --------------------------------
+  - id: transactions.upstream.copier
+    group: exactly-once
+    client: kafka-tools
+    scenario: upstream-copier
+    title: "Kafka's transactions system test path: kafka-verifiable-producer seeds 1000 values over 2 partitions, one TransactionalMessageCopier per partition copies them in transactions of 50 with random aborts and group-metadata offset commits, a read_committed kafka-console-consumer sees every value exactly once"
+    provenance: upstream
+    source: "apache/kafka tests/kafkatest/tests/core/transactions_test.py (TransactionsTest) with tools/src/main/java/org/apache/kafka/tools/TransactionalMessageCopier.java and VerifiableProducer; broker bounces and copier kills not injected"
+  # --- librdkafka 2.15.1 (confluent-kafka-python) ---------------------------------------------
+  - id: transactions.librdkafka.isolation
+    group: transactions
+    client: librdkafka
+    scenario: isolation
+    title: "commit, abort, commit: read_committed delivers only committed records, read_uncommitted every record; one offset per marker; the open transaction pins the last stable offset"
+    provenance: kubemq-authored
+    source: suites/transactions/python/txn_driver.py (confluent-kafka 2.15.1, librdkafka 2.15.1)
+  - id: transactions.librdkafka.send-offsets
+    group: transactions
+    client: librdkafka
+    scenario: send-offsets
+    title: "send_offsets_to_transaction with a member-less group's metadata: offsets visible on commit, discarded on abort, a stable offset fetch reports them pending"
+    provenance: kubemq-authored
+    source: suites/transactions/python/txn_driver.py (confluent-kafka 2.15.1, librdkafka 2.15.1)
+  - id: transactions.librdkafka.consume-transform-produce
+    group: exactly-once
+    client: librdkafka
+    scenario: consume-transform-produce
+    title: "consume-transform-produce through a consumer group (classic protocol), 60 records over 3 partitions, every third transaction aborted and the consumer rewound: every output committed exactly once in input order, group offsets at the input end"
+    provenance: kubemq-authored
+    source: suites/transactions/python/txn_driver.py (confluent-kafka 2.15.1, librdkafka 2.15.1)
+  - id: transactions.librdkafka.fencing
+    group: transactions
+    client: librdkafka
+    scenario: fencing
+    title: "zombie fencing: a second producer with the same transactional.id aborts the first one's open transaction; the zombie's send and commit fail with a fencing error"
+    provenance: kubemq-authored
+    source: suites/transactions/python/txn_driver.py (confluent-kafka 2.15.1, librdkafka 2.15.1)
+  - id: transactions.librdkafka.timeout-abort
+    group: transactions
+    client: librdkafka
+    scenario: timeout-abort
+    title: "transaction.timeout.ms expiry: a transaction left open past 3 s is aborted by the broker, the late commit fails, a new producer with the same id commits"
+    provenance: kubemq-authored
+    source: suites/transactions/python/txn_driver.py (confluent-kafka 2.15.1, librdkafka 2.15.1)
+  - id: transactions.librdkafka.timeout-limit
+    group: transactions
+    client: librdkafka
+    scenario: timeout-limit
+    title: "init_transactions with transaction.timeout.ms above the broker maximum (900000) fails with INVALID_TRANSACTION_TIMEOUT; exactly the maximum is accepted"
+    provenance: kubemq-authored
+    source: suites/transactions/python/txn_driver.py (confluent-kafka 2.15.1, librdkafka 2.15.1)

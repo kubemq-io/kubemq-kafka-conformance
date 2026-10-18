@@ -1,0 +1,22 @@
+# Apache Kafka oracle for one security posture. Booted by runner/lib/brokers.sh (posture_up) with
+# the POSTURE_* variables; suites/security/posture writes everything under POSTURE_DIR, mounted
+# at /posture: server.properties (listeners ADMIN plaintext, CLIENT plain port, CLIENTTLS TLS
+# port), the PEM keystore and truststore, and the entrypoint script that formats KRaft storage.
+name: kcert-posture-oracle-${CERT_RUN_ID:?CERT_RUN_ID is set by runner/certify.sh}
+services:
+  kafka:
+    image: ${KAFKA_IMAGE_REPO}@${KAFKA_IMAGE_DIGEST}
+    container_name: ${POSTURE_ORACLE_CONTAINER:?set by runner/certify.sh}
+    hostname: kafka-oracle
+    entrypoint: ["sh", "/posture/oracle-start.sh"]
+    ports:
+      - "${CERT_BIND_ADDR:-127.0.0.1}:${POSTURE_ORACLE_PORT}:${POSTURE_ORACLE_PORT}"
+      - "${CERT_BIND_ADDR:-127.0.0.1}:${POSTURE_ORACLE_TLS_PORT}:${POSTURE_ORACLE_TLS_PORT}"
+      - "${CERT_BIND_ADDR:-127.0.0.1}:${POSTURE_ORACLE_ADMIN_PORT}:${POSTURE_ORACLE_ADMIN_PORT}"
+    environment:
+      # OAUTHBEARER postures read the token key set from a file; Kafka 4 allows only listed URLs.
+      KAFKA_OPTS: "-Dorg.apache.kafka.sasl.oauthbearer.allowed.urls=file:///posture/oidc/jwks.json"
+    volumes:
+      - "${POSTURE_DIR:?set by runner/certify.sh}:/posture:ro"
+    tmpfs:
+      - /tmp/kraft-combined-logs

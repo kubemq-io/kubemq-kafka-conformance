@@ -1,0 +1,12 @@
+# kcat driver of the clients track (SCENARIO.md): kcat and librdkafka from pinned Alpine packages,
+# jq to write the ledger. Built by suites/clients/build-driver.sh with the pinned image of
+# suites/clients/clients.env.
+ARG RUNTIME_IMAGE
+FROM ${RUNTIME_IMAGE}
+ARG KCAT_APK_VERSION
+ARG LIBRDKAFKA_APK_VERSION
+ARG JQ_APK_VERSION
+RUN apk add --no-cache "kcat=${KCAT_APK_VERSION}" "librdkafka=${LIBRDKAFKA_APK_VERSION}" "jq=${JQ_APK_VERSION}"
+COPY driver.sh /app/driver.sh
+USER 65532:65532
+ENTRYPOINT ["/bin/sh", "/app/driver.sh"]

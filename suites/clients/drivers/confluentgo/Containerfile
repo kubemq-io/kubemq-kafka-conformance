@@ -1,0 +1,16 @@
+# confluent-kafka-go driver of the clients track (SCENARIO.md). confluent-kafka-go links the
+# librdkafka it bundles (cgo), so it is built in a pinned Go image and run on a pinned Debian
+# image with the same C library. Built by suites/clients/build-driver.sh.
+ARG BUILD_IMAGE
+ARG RUNTIME_IMAGE
+FROM ${BUILD_IMAGE} AS build
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
+COPY main.go ./
+RUN CGO_ENABLED=1 go build -trimpath -o /out/driver .
+
+FROM ${RUNTIME_IMAGE}
+COPY --from=build /out/driver /app/driver
+USER 65532:65532
+ENTRYPOINT ["/app/driver"]
