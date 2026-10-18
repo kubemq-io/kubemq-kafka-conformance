@@ -51,6 +51,7 @@ with who it affects and the workaround. Any other difference from Kafka would be
 Six requests that Kafka brokers send only to each other are listed separately as not applicable:
 KubeMQ replaces Kafka for applications and tools, not as a member of a Kafka broker cluster.
 
+- Results page: <https://kubemq-io.github.io/kubemq-kafka-conformance/>
 - One-page result: [`COMPATIBILITY.md`](COMPATIBILITY.md)
 - Every test, with what was observed on each broker: [`results/REPORT.md`](results/REPORT.md)
 - Machine-readable verdicts: [`results/summary.json`](results/summary.json)
