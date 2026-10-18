@@ -1,9 +1,14 @@
 # Performance baseline
 
-**Reproducible baseline, not a benchmark claim.** These numbers show how KubeMQ's Kafka listener
-performs next to Apache Kafka on the same machine with Kafka's own load tools, so an evaluator can
-size a trial and rerun the comparison. They are not a performance guarantee, and they are outside
-the pass/fail verdicts: a row passes when the measurement completed on both brokers.
+**KubeMQ's published performance numbers are in the [KubeMQ vs Kafka benchmark](https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/):**
+two identical 3-broker clusters on Google Cloud, the OpenMessaging Benchmark client, and an
+acknowledged-loss verifier beside the load.
+
+This track is something else: a quick side-by-side run of Kafka's own load tools on one machine,
+so an evaluator can size a trial on their own hardware. Its numbers depend entirely on that
+machine (a laptop running both brokers and the load in containers is not a performance test), so
+the published report does not show them, and they are outside the pass/fail verdicts: a row
+passes when the measurement completed on both brokers.
 
 ## Method
 
@@ -37,20 +42,21 @@ kafka-producer-perf-test.sh --topic T --num-records N --record-size S --throughp
 kafka-consumer-perf-test.sh --bootstrap-server B --topic T --messages N --timeout 60000
 ```
 
-The first producer command is the warm-up. Each of the last three runs three times; the table
+The first producer command is the warm-up. Each of the last three runs three times; the report
 shows the median. The client container gets `KAFKA_HEAP_OPTS=-Xms512m -Xmx1g`.
 
 ## Results
 
-The published numbers are the `perf.*` rows of `results/REPORT.md`: throughput for every
-workload on both brokers, and the producer tool's 99th-percentile latency for the produce
-workloads. The numbers depend on the machine, so rerun the track on your own hardware to size a
-trial.
+Rerun the track and read the `perf.*` rows of your own `.work/run-<time>/report/REPORT.md`:
+throughput for every workload on both brokers, and the producer tool's 99th-percentile latency
+for the produce workloads. The published report lists these rows without values.
 
-When reading the numbers:
+When reading your numbers:
 
 - Consume rates exclude the consumer group join.
 - The 99th-percentile latency is measured at full load and varies between runs, most of all for
   100-byte records; compare throughput first, and compare latency only between runs on the same
   machine.
-- All rows run on a single node. The suite has no cluster baseline.
+- All rows run on a single node, with the brokers, the load and the container engine sharing one
+  machine. For cluster numbers on identical hardware, see the
+  [benchmark](https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/).
