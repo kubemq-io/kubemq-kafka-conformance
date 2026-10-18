@@ -142,12 +142,12 @@ details.track .scroll{margin:0;border:0;border-top:1px solid var(--line);border-
 <div class="stat"><b>9</b><span>optional features</span></div>
 <div class="stat"><b>0</b><span>failures</span></div>
 </div>
-<nav class="toc"><a href="#result">Result by area</a><a href="#optional">Optional features</a><a href="#coverage">What is tested</a><a href="#tests">Every test</a><a href="#perf">Performance baseline</a><a href="#method">Method</a><a href="#reproduce">Run it yourself</a></nav>
+<nav class="toc"><a href="#result">Result by area</a><a href="#optional">Optional features</a><a href="#coverage">What is tested</a><a href="#tests">Every test</a><a href="#perf">Performance</a><a href="#method">Method</a><a href="#reproduce">Run it yourself</a></nav>
 </div></div></section>
 
 <main>
 <h2 id="result">Result by area</h2>
-<div class="note"><b>PASS</b>: KubeMQ behaved exactly as Kafka did. <b>OPTIONAL</b>: a Kafka feature KubeMQ does not offer, listed before the run with who it affects and the workaround. Any other difference would be a <b>FAIL</b>; this run has none. Performance rows are measured, not judged, and are not counted.</div>
+<div class="note"><b>PASS</b>: KubeMQ behaved exactly as Kafka did. <b>OPTIONAL</b>: a Kafka feature KubeMQ does not offer, listed before the run with who it affects and the workaround. Any other difference would be a <b>FAIL</b>; this run has none.</div>
 <div class="scroll"><table class="tracks"><thead><tr><th scope="col">Area</th><th scope="col">Tests</th><th scope="col">Pass</th><th scope="col">Optional</th><th scope="col">Fail</th><th scope="col">Share passing</th></tr></thead><tbody>
 <tr><td><a href="#t-protocol">Kafka protocol</a></td><td>82</td><td>78</td><td>4</td><td>0</td><td><div class="bar" role="img" aria-label="78 of 82 pass"><i class="p" style="width:95.1%"></i><i class="o" style="width:4.9%"></i></div></td></tr>
 <tr><td><a href="#t-features">Broker behaviour</a></td><td>59</td><td>58</td><td>1</td><td>0</td><td><div class="bar" role="img" aria-label="58 of 59 pass"><i class="p" style="width:98.3%"></i><i class="o" style="width:1.7%"></i></div></td></tr>
@@ -183,7 +183,6 @@ details.track .scroll{margin:0;border:0;border-top:1px solid var(--line);border-
 <tr><td>Application</td><td class="desc">Java and Python order-processing services: compression, rebalancing groups and exactly-once pipelines with aborts, checked for no loss, no duplicates and per-customer order.</td><td>1</td></tr>
 <tr><td>Kafka tools and platform</td><td class="desc">Kafka&#x27;s own CLI tools, Kafka Connect, Kafka Streams, MirrorMaker 2, lag monitors (Burrow, kafka-lag-exporter) and Kafbat UI, unmodified.</td><td>44</td></tr>
 <tr><td>Security</td><td class="desc">TLS, mTLS, SASL PLAIN, SCRAM and OAUTHBEARER, re-authentication, ACLs and quotas, each configured the way the product documents it.</td><td>41</td></tr>
-<tr><td>Performance baseline</td><td class="desc">Kafka&#x27;s own perf tools on both brokers on one machine. Measured, not judged.</td><td>9</td></tr>
 <tr><td>Operations</td><td class="desc">The metrics, configuration answers and consumer lag an operator relies on, compared with Kafka&#x27;s own.</td><td>31</td></tr>
 <tr><td>Migration</td><td class="desc">Moving topics and consumer-group offsets from Kafka to KubeMQ with MirrorMaker 2, cutting consumers over, and rolling back.</td><td>7</td></tr>
 </tbody></table></div>
@@ -554,19 +553,18 @@ details.track .scroll{margin:0;border:0;border-top:1px solid var(--line);border-
 <tr><td class="id">migration.mm2.config-refusal</td><td><span class="v PASS">PASS</span></td><td class="d">A 3-partition source topic carrying retention.bytes: the mirrored topic&#x27;s partition count, size bound and records</td><td class="d">observations identical: mirror_completed=true target_partitions=3 target_retention_bytes=&quot;1073741824&quot;</td></tr>
 <tr><td class="id">migration.rollback.end-to-end</td><td><span class="v PASS">PASS</span></td><td class="d">Rollback after the target took writes: reverse mirror to Kafka, the group&#x27;s offsets translate back, a consumer resumes on Kafka without skipping</td><td class="d">observations identical: in_order=true never_ahead=true no_duplicates=true nothing_skipped=true records_identical=true some_translated=true started_at_commit=true</td></tr>
 </tbody></table></div></details>
-<h2 id="perf">Performance baseline</h2>
-<div class="note">Single node, both brokers on the same laptop, one after the other, with Kafka's own <code>kafka-producer-perf-test</code> and <code>kafka-consumer-perf-test</code>. This shows the suite can size a trial on your own machine; it is not a benchmark. For cluster numbers on identical cloud hardware see the <a href="https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/">KubeMQ vs Kafka benchmark</a>.</div>
-<div class="scroll"><table class="wide"><thead><tr><th scope="col">Measurement</th><th scope="col"><span class="dot kf"></span>Apache Kafka</th><th scope="col"><span class="dot mq"></span>KubeMQ</th></tr></thead><tbody>
-<tr><td>Produce 3,000,000 records of 100 bytes, acks=all</td><td class="d">551065 records/s, 52.5 MB/s, 99th-percentile latency 90 ms</td><td class="d">504032 records/s, 48.1 MB/s, 99th-percentile latency 116 ms</td></tr>
-<tr><td>Produce 3,000,000 records of 100 bytes, acks=1</td><td class="d">569152 records/s, 54.3 MB/s, 99th-percentile latency 86 ms</td><td class="d">485909 records/s, 46.3 MB/s, 99th-percentile latency 123 ms</td></tr>
-<tr><td>Consume 3,000,000 records of 100 bytes</td><td class="d">774441 records/s, 73.9 MB/s</td><td class="d">730380 records/s, 69.7 MB/s</td></tr>
-<tr><td>Produce 300,000 records of 1 KiB, acks=all</td><td class="d">73656 records/s, 71.9 MB/s, 99th-percentile latency 440 ms</td><td class="d">68618 records/s, 67.0 MB/s, 99th-percentile latency 477 ms</td></tr>
-<tr><td>Produce 300,000 records of 1 KiB, acks=1</td><td class="d">73692 records/s, 72.0 MB/s, 99th-percentile latency 434 ms</td><td class="d">70077 records/s, 68.4 MB/s, 99th-percentile latency 443 ms</td></tr>
-<tr><td>Consume 300,000 records of 1 KiB</td><td class="d">86968 records/s, 84.9 MB/s</td><td class="d">79807 records/s, 77.9 MB/s</td></tr>
-<tr><td>Produce 30,000 records of 10 KiB, acks=all</td><td class="d">5645 records/s, 55.1 MB/s, 99th-percentile latency 402 ms</td><td class="d">5924 records/s, 57.9 MB/s, 99th-percentile latency 380 ms</td></tr>
-<tr><td>Produce 30,000 records of 10 KiB, acks=1</td><td class="d">5671 records/s, 55.4 MB/s, 99th-percentile latency 385 ms</td><td class="d">5919 records/s, 57.8 MB/s, 99th-percentile latency 379 ms</td></tr>
-<tr><td>Consume 30,000 records of 10 KiB</td><td class="d">8717 records/s, 85.1 MB/s</td><td class="d">8086 records/s, 79.0 MB/s</td></tr>
+<h2 id="perf">Performance</h2>
+<p>This suite checks behaviour, not speed. Performance is measured separately, by the <a href="https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/">KubeMQ vs Kafka benchmark</a>: two identical 3-broker clusters on Google Cloud, the same OpenMessaging Benchmark client, and an acknowledged-loss verifier running beside the load. Selected results:</p>
+<div class="scroll"><table class="wide"><thead><tr><th scope="col">Measure</th><th scope="col"><span class="dot mq"></span>KubeMQ</th><th scope="col"><span class="dot kf"></span>Apache Kafka</th></tr></thead><tbody>
+<tr><td>Highest rate carried, 1 KB messages</td><td class="d"><b>700k msg/s</b></td><td class="d">400k msg/s</td></tr>
+<tr><td>End-to-end latency p99 at 300k msg/s</td><td class="d"><b>6 ms</b></td><td class="d">274 ms</td></tr>
+<tr><td>Publish latency p99 at 400k msg/s</td><td class="d"><b>5 ms</b></td><td class="d">631 ms</td></tr>
+<tr><td>Bandwidth, 100 KB messages</td><td class="d"><b>614 MB/s</b></td><td class="d">410 MB/s</td></tr>
+<tr><td>Partition leader killed: longest gap with no acknowledgements</td><td class="d"><b>2 s</b></td><td class="d">8 s</td></tr>
+<tr><td>Partition leader killed: acknowledged messages lost</td><td class="d"><b>0</b></td><td class="d">0</td></tr>
+<tr><td>Broker memory at 300k msg/s</td><td class="d"><b>2.5 GiB</b></td><td class="d">24.6 GiB</td></tr>
 </tbody></table></div>
+<p>Every table, the latency curves, CPU, disk and network per broker, the method and how to rerun it are on the <a href="https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/">benchmark page</a>.</p>
 <h2 id="method">Method</h2>
 <p>Real Apache Kafka is the reference. Every test runs against Kafka first, then against KubeMQ with only the bootstrap address changed; nothing else in the client, tool or scenario changes between the two. If the Kafka leg itself does not show the documented behaviour, the test proves nothing and is reported VOID, never PASS.</p>
 <ul><li>A difference is OPTIONAL only if it was listed, with the exact behaviour, before the run. Any other difference is a FAIL, and a FAIL is never relabelled afterwards.</li><li>A test that did not run fails the report; a skipped test is never quiet.</li><li>Every verifier ships a mutation test proving it reports FAIL on a lost, duplicated, reordered or misnumbered record.</li><li>Each test records its origin: an upstream Apache Kafka or client-project test, or one written by KubeMQ.</li></ul>

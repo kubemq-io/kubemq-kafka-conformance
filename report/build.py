@@ -23,7 +23,6 @@ TRACKS = {
     "app-sim": ("Application", "Java and Python order-processing services: compression, rebalancing groups and exactly-once pipelines with aborts, checked for no loss, no duplicates and per-customer order."),
     "tools": ("Kafka tools and platform", "Kafka's own CLI tools, Kafka Connect, Kafka Streams, MirrorMaker 2, lag monitors (Burrow, kafka-lag-exporter) and Kafbat UI, unmodified."),
     "security": ("Security", "TLS, mTLS, SASL PLAIN, SCRAM and OAUTHBEARER, re-authentication, ACLs and quotas, each configured the way the product documents it."),
-    "perf": ("Performance baseline", "Kafka's own perf tools on both brokers on one machine. Measured, not judged."),
     "operations": ("Operations", "The metrics, configuration answers and consumer lag an operator relies on, compared with Kafka's own."),
     "migration": ("Migration", "Moving topics and consumer-group offsets from Kafka to KubeMQ with MirrorMaker 2, cutting consumers over, and rolling back."),
 }
@@ -40,6 +39,19 @@ OPTIONAL_NAMES = {
     "operations.config.segment-bytes": "Fixed 64 MiB log segment size",
 }
 
+
+# Headline numbers from the KubeMQ vs Kafka benchmark (identical GKE clusters, 3 brokers each);
+# the source is that repository's README. Update them when the benchmark is rerun.
+BENCH = "https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/"
+BENCH_ROWS = [
+    ("Highest rate carried, 1 KB messages", "700k msg/s", "400k msg/s"),
+    ("End-to-end latency p99 at 300k msg/s", "6 ms", "274 ms"),
+    ("Publish latency p99 at 400k msg/s", "5 ms", "631 ms"),
+    ("Bandwidth, 100 KB messages", "614 MB/s", "410 MB/s"),
+    ("Partition leader killed: longest gap with no acknowledgements", "2 s", "8 s"),
+    ("Partition leader killed: acknowledged messages lost", "0", "0"),
+    ("Broker memory at 300k msg/s", "2.5 GiB", "24.6 GiB"),
+]
 
 def esc(s):
     return html.escape(s, quote=True)
@@ -116,8 +128,6 @@ def main():
     sources = run.get("sources") or []
     machine = sources[0]["machine"] if sources else run.get("machine", "")
     engine = sources[0]["engine"] if sources else run.get("engine", {})
-    perf_rows = rows_by_track.get("perf", [])
-    measured = [r for r in perf_rows if "measured" in r[3]]
 
     # --- hero -------------------------------------------------------------------------------
     hero = []
@@ -131,12 +141,12 @@ def main():
     hero.append(f'<div class="stat"><b>{totals["GAP"]}</b><span>optional features</span></div>')
     hero.append(f'<div class="stat"><b>{bad}</b><span>failures</span></div>')
     hero.append("</div>")
-    hero.append('<nav class="toc"><a href="#result">Result by area</a><a href="#optional">Optional features</a><a href="#coverage">What is tested</a><a href="#tests">Every test</a><a href="#perf">Performance baseline</a><a href="#method">Method</a><a href="#reproduce">Run it yourself</a></nav>')
+    hero.append('<nav class="toc"><a href="#result">Result by area</a><a href="#optional">Optional features</a><a href="#coverage">What is tested</a><a href="#tests">Every test</a><a href="#perf">Performance</a><a href="#method">Method</a><a href="#reproduce">Run it yourself</a></nav>')
 
     # --- body -------------------------------------------------------------------------------
     b = []
     b.append('<h2 id="result">Result by area</h2>')
-    b.append(f'<div class="note"><b>PASS</b>: KubeMQ behaved exactly as Kafka did. <b>OPTIONAL</b>: a Kafka feature KubeMQ does not offer, listed before the run with who it affects and the workaround. Any other difference would be a <b>FAIL</b>; this run has none. Performance rows are measured, not judged, and are not counted.</div>')
+    b.append(f'<div class="note"><b>PASS</b>: KubeMQ behaved exactly as Kafka did. <b>OPTIONAL</b>: a Kafka feature KubeMQ does not offer, listed before the run with who it affects and the workaround. Any other difference would be a <b>FAIL</b>; this run has none.</div>')
     b.append('<div class="scroll"><table class="tracks"><thead><tr><th scope="col">Area</th><th scope="col">Tests</th><th scope="col">Pass</th><th scope="col">Optional</th><th scope="col">Fail</th><th scope="col">Share passing</th></tr></thead><tbody>')
     for t in tracks:
         n = t["rows"]
@@ -163,8 +173,10 @@ def main():
     b.append('<h2 id="coverage">What is tested</h2>')
     b.append('<div class="scroll"><table class="tracks"><thead><tr><th scope="col">Area</th><th scope="col" style="text-align:left">What runs on both brokers</th><th scope="col">Tests</th></tr></thead><tbody>')
     for t in tracks:
+        if t["track"] == "perf":
+            continue
         name, desc = TRACKS.get(t["track"], (t["track"], ""))
-        n = t["rows"] or len(measured)
+        n = t["rows"]
         b.append(f'<tr><td>{esc(name)}</td><td class="desc">{esc(desc)}</td><td>{n}</td></tr>')
     b.append("</tbody></table></div>")
     b.append("<h3>Clients and tools that ran</h3><div class=\"chips\">")
@@ -189,15 +201,13 @@ def main():
             b.append(f'<tr><td class="id">{esc(r[0].strip("`"))}</td><td>{verdict(r[1])}</td><td class="d">{md_inline(r[2])}</td><td class="d">{md_inline(r[3])}</td></tr>')
         b.append("</tbody></table></div></details>")
 
-    if measured:
-        b.append('<h2 id="perf">Performance baseline</h2>')
-        b.append('<div class="note">Single node, both brokers on the same laptop, one after the other, with Kafka\'s own <code>kafka-producer-perf-test</code> and <code>kafka-consumer-perf-test</code>. This shows the suite can size a trial on your own machine; it is not a benchmark. For cluster numbers on identical cloud hardware see the <a href="https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/">KubeMQ vs Kafka benchmark</a>.</div>')
-        b.append('<div class="scroll"><table class="wide"><thead><tr><th scope="col">Measurement</th><th scope="col"><span class="dot kf"></span>Apache Kafka</th><th scope="col"><span class="dot mq"></span>KubeMQ</th></tr></thead><tbody>')
-        for r in measured:
-            m = re.search(r"Kafka (.*?); KubeMQ (.*)$", r[3])
-            kf, mq = (m.group(1), m.group(2)) if m else (r[3], "")
-            b.append(f'<tr><td>{md_inline(r[2].split(":")[0])}</td><td class="d">{esc(kf)}</td><td class="d">{esc(mq)}</td></tr>')
-        b.append("</tbody></table></div>")
+    b.append('<h2 id="perf">Performance</h2>')
+    b.append(f'<p>This suite checks behaviour, not speed. Performance is measured separately, by the <a href="{BENCH}">KubeMQ vs Kafka benchmark</a>: two identical 3-broker clusters on Google Cloud, the same OpenMessaging Benchmark client, and an acknowledged-loss verifier running beside the load. Selected results:</p>')
+    b.append('<div class="scroll"><table class="wide"><thead><tr><th scope="col">Measure</th><th scope="col"><span class="dot mq"></span>KubeMQ</th><th scope="col"><span class="dot kf"></span>Apache Kafka</th></tr></thead><tbody>')
+    for m, mq, kf in BENCH_ROWS:
+        b.append(f'<tr><td>{esc(m)}</td><td class="d"><b>{esc(mq)}</b></td><td class="d">{esc(kf)}</td></tr>')
+    b.append("</tbody></table></div>")
+    b.append(f'<p>Every table, the latency curves, CPU, disk and network per broker, the method and how to rerun it are on the <a href="{BENCH}">benchmark page</a>.</p>')
 
     b.append('<h2 id="method">Method</h2>')
     b.append("<p>Real Apache Kafka is the reference. Every test runs against Kafka first, then against KubeMQ with only the bootstrap address changed; nothing else in the client, tool or scenario changes between the two. If the Kafka leg itself does not show the documented behaviour, the test proves nothing and is reported VOID, never PASS.</p>")
