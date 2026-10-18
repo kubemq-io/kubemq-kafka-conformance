@@ -19,7 +19,7 @@ Latest run: KubeMQ against Apache Kafka 4.3.1, **PASSED**. 313 rows: 304 PASS, 9
 | migration | 7 | 7 | 0 | 0 | 0 | 0 | 0 | passed |
 | **all** | **313** | 304 | 9 | 0 | 0 | 0 | 0 | **passed** |
 
-Measurements, outside the counts above (values in the detail): perf 9.
+Measurements, outside the counts above (published performance: https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/): perf 9.
 
 ## Broker-internal requests outside application compatibility: 6
 
@@ -416,15 +416,15 @@ Kafka features KubeMQ does not offer, listed before the run.
 
 | Row | Verdict | What | Detail |
 |---|---|---|---|
-| `perf.produce.100b.acks-all` | PASS | Produce 3,000,000 records of 100 bytes, acks=all: throughput and 99th-percentile latency | measured (not judged): Kafka 551065 records/s, 52.5 MB/s, 99th-percentile latency 90 ms; KubeMQ 504032 records/s, 48.1 MB/s, 99th-percentile latency 116 ms |
-| `perf.produce.100b.acks-1` | PASS | Produce 3,000,000 records of 100 bytes, acks=1: throughput and 99th-percentile latency | measured (not judged): Kafka 569152 records/s, 54.3 MB/s, 99th-percentile latency 86 ms; KubeMQ 485909 records/s, 46.3 MB/s, 99th-percentile latency 123 ms |
-| `perf.consume.100b` | PASS | Consume 3,000,000 records of 100 bytes: throughput | measured (not judged): Kafka 774441 records/s, 73.9 MB/s; KubeMQ 730380 records/s, 69.7 MB/s |
-| `perf.produce.1kib.acks-all` | PASS | Produce 300,000 records of 1 KiB, acks=all: throughput and 99th-percentile latency | measured (not judged): Kafka 73656 records/s, 71.9 MB/s, 99th-percentile latency 440 ms; KubeMQ 68618 records/s, 67.0 MB/s, 99th-percentile latency 477 ms |
-| `perf.produce.1kib.acks-1` | PASS | Produce 300,000 records of 1 KiB, acks=1: throughput and 99th-percentile latency | measured (not judged): Kafka 73692 records/s, 72.0 MB/s, 99th-percentile latency 434 ms; KubeMQ 70077 records/s, 68.4 MB/s, 99th-percentile latency 443 ms |
-| `perf.consume.1kib` | PASS | Consume 300,000 records of 1 KiB: throughput | measured (not judged): Kafka 86968 records/s, 84.9 MB/s; KubeMQ 79807 records/s, 77.9 MB/s |
-| `perf.produce.10kib.acks-all` | PASS | Produce 30,000 records of 10 KiB, acks=all: throughput and 99th-percentile latency | measured (not judged): Kafka 5645 records/s, 55.1 MB/s, 99th-percentile latency 402 ms; KubeMQ 5924 records/s, 57.9 MB/s, 99th-percentile latency 380 ms |
-| `perf.produce.10kib.acks-1` | PASS | Produce 30,000 records of 10 KiB, acks=1: throughput and 99th-percentile latency | measured (not judged): Kafka 5671 records/s, 55.4 MB/s, 99th-percentile latency 385 ms; KubeMQ 5919 records/s, 57.8 MB/s, 99th-percentile latency 379 ms |
-| `perf.consume.10kib` | PASS | Consume 30,000 records of 10 KiB: throughput | measured (not judged): Kafka 8717 records/s, 85.1 MB/s; KubeMQ 8086 records/s, 79.0 MB/s |
+| `perf.produce.100b.acks-all` | PASS | Produce 3,000,000 records of 100 bytes, acks=all: throughput and 99th-percentile latency | measured (values not published here; a rerun shows your own). Published performance: https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/ |
+| `perf.produce.100b.acks-1` | PASS | Produce 3,000,000 records of 100 bytes, acks=1: throughput and 99th-percentile latency | measured (values not published here; a rerun shows your own). Published performance: https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/ |
+| `perf.consume.100b` | PASS | Consume 3,000,000 records of 100 bytes: throughput | measured (values not published here; a rerun shows your own). Published performance: https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/ |
+| `perf.produce.1kib.acks-all` | PASS | Produce 300,000 records of 1 KiB, acks=all: throughput and 99th-percentile latency | measured (values not published here; a rerun shows your own). Published performance: https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/ |
+| `perf.produce.1kib.acks-1` | PASS | Produce 300,000 records of 1 KiB, acks=1: throughput and 99th-percentile latency | measured (values not published here; a rerun shows your own). Published performance: https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/ |
+| `perf.consume.1kib` | PASS | Consume 300,000 records of 1 KiB: throughput | measured (values not published here; a rerun shows your own). Published performance: https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/ |
+| `perf.produce.10kib.acks-all` | PASS | Produce 30,000 records of 10 KiB, acks=all: throughput and 99th-percentile latency | measured (values not published here; a rerun shows your own). Published performance: https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/ |
+| `perf.produce.10kib.acks-1` | PASS | Produce 30,000 records of 10 KiB, acks=1: throughput and 99th-percentile latency | measured (values not published here; a rerun shows your own). Published performance: https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/ |
+| `perf.consume.10kib` | PASS | Consume 30,000 records of 10 KiB: throughput | measured (values not published here; a rerun shows your own). Published performance: https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/ |
 
 ### operations
 

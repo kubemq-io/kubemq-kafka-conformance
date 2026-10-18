@@ -32,7 +32,7 @@ MirrorMaker 2, lag tools, TLS, mTLS, SASL (PLAIN, SCRAM, OAUTHBEARER), ACLs and 
 | migration | 7 | 7 | 0 | 0 | 0 | 0 | 0 | passed |
 | **all** | **313** | 304 | 9 | 0 | 0 | 0 | 0 | **passed** |
 
-Measurements, outside the counts above (values in the detail): perf 9.
+Measurements, outside the counts above (published performance: https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/): perf 9.
 
 
 **OPTIONAL** means a Kafka feature KubeMQ does not offer today. Each one is listed before the run,
@@ -81,7 +81,9 @@ report).
 
 Guides built on the same tests: [migrating from Kafka](docs/migration.md),
 [operating KubeMQ in place of Kafka](docs/operations.md), [Kafka tools](docs/tools.md),
-[performance baseline](docs/performance.md).
+[running the performance baseline](docs/performance.md).
+
+Performance numbers: the [KubeMQ vs Kafka benchmark](https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/), on identical cluster hardware.
 
 ## Layout
 

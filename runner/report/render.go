@@ -24,9 +24,20 @@ func label(v string) string {
 // signOffText matches the sign-off clause the tracks append to a registered row's detail.
 var signOffText = regexp.MustCompile(`\.?\s*(owner-approved scope exclusion|pre-registered gap), signed off(:| by) .*?\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2})?Z)?\.?`)
 
+// BenchmarkURL is where the public report points for performance numbers.
+const BenchmarkURL = "https://kubemq-io.github.io/kubemq-vs-kafka-benchmark/"
+
+// publicMeasurement replaces a measurement's values in the public report: one machine's
+// numbers are not KubeMQ's published performance, which the benchmark measures on identical
+// cluster hardware. A rerun's own report still shows its values.
+const publicMeasurement = "measured (values not published here; a rerun shows your own). Published performance: " + BenchmarkURL
+
 // shownDetail is a row's detail as the report shows it: the sign-off clause and note left out
 // (docs/gaps.md holds them), every other note kept.
 func shownDetail(row Row) string {
+	if Public && row.Kind == Measurement && row.Verdict == Pass {
+		return publicMeasurement
+	}
 	d := row.Detail
 	if row.Verdict == Gap || row.Verdict == NotApplicable {
 		d = strings.TrimSpace(signOffText.ReplaceAllString(d, ""))
@@ -441,7 +452,11 @@ func measurementsLine(r *Report) string {
 	if len(parts) == 0 {
 		return ""
 	}
-	return "\nMeasurements, outside the counts above (values in the detail): " + strings.Join(parts, ", ") + ".\n"
+	where := "values in the detail"
+	if Public {
+		where = "published performance: " + BenchmarkURL
+	}
+	return "\nMeasurements, outside the counts above (" + where + "): " + strings.Join(parts, ", ") + ".\n"
 }
 
 // countsRow is one track's line of a counts table.

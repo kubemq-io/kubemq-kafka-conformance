@@ -664,6 +664,12 @@ func TestMeasurementRowsAreOutsideTheCounts(t *testing.T) {
 	if strings.Contains(compat, "Inconclusive rows") {
 		t.Error("a measurement that did not complete is not listed as an inconclusive verdict")
 	}
+	Public = true
+	defer func() { Public = false }()
+	compat = CompatibilityMarkdown(r)
+	if strings.Contains(compat, "120 MB/s") || !strings.Contains(compat, "published performance: "+BenchmarkURL) || !strings.Contains(compat, "did not complete") {
+		t.Errorf("the public report shows no measured values, points to the benchmark, and keeps a measurement that did not complete:\n%s", compat)
+	}
 }
 
 func TestMissingMeasurementRowIsNotNotRun(t *testing.T) {
