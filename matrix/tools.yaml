@@ -1,0 +1,286 @@
+# Track D platform-tool rows. Every program under test is Apache Kafka's own, run unmodified from
+# the pinned Kafka image (compose/versions.env) in a container that reaches both brokers through
+# the host-gateway alias. Each row's probe runs on the Kafka oracle, then on KubeMQ with only the
+# bootstrap address changed; the two observations are compared field by field (suites/tools).
+# Every row records its provenance and source.
+track: tools
+rows:
+  # --- Kafka CLI -------------------------------------------------------------------------------
+  - id: tools.cli.topics-lifecycle
+    group: cli
+    title: "kafka-topics.sh: create with a config, describe, list, duplicate create refused, partitions 3 to 5, decrease refused, describe of a missing topic refused, delete"
+    probe: cli-topics-lifecycle
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli.go (Kafka 4.3.1 kafka-topics.sh; steps from kubemq-server tests/kafka-conformance admin-tools sweep)
+  - id: tools.cli.console-roundtrip
+    group: cli
+    title: "kafka-console-producer.sh to kafka-console-consumer.sh: 120 records with keys and headers over 3 partitions, each delivered once with key and headers intact, per-key order kept, offsets contiguous"
+    probe: cli-console-roundtrip
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli.go (Kafka 4.3.1 console producer and consumer)
+  - id: tools.cli.groups-describe
+    group: cli
+    title: "kafka-consumer-groups.sh after a console consumer read 60 records: listed, describe shows every partition committed at its end with lag 0, state Empty with 0 members"
+    probe: cli-groups-describe
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli.go (Kafka 4.3.1 kafka-consumer-groups.sh)
+  - id: tools.cli.groups-reset-offsets
+    group: cli
+    title: "kafka-consumer-groups.sh --reset-offsets: dry run changes nothing; to-earliest, to-offset, shift-by both ways, to-latest; to-datetime between two batches lands on the first batch's end; future datetime falls back to latest"
+    probe: cli-groups-reset
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli.go (Kafka 4.3.1 kafka-consumer-groups.sh)
+  - id: tools.cli.groups-active-refusals
+    group: cli
+    title: "kafka-consumer-groups.sh refuses to reset or delete a group with a running member, and changes nothing"
+    probe: cli-groups-active
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli.go (Kafka 4.3.1 kafka-consumer-groups.sh)
+  - id: tools.cli.groups-delete
+    group: cli
+    title: "kafka-consumer-groups.sh --delete of an empty group: reported successful, gone from the list, describe and a second delete answer GroupIdNotFound"
+    probe: cli-groups-delete
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli.go (Kafka 4.3.1 kafka-consumer-groups.sh)
+  - id: tools.cli.configs-topic
+    group: cli
+    title: "kafka-configs.sh on a topic: add two configs, describe them, delete one, unknown name and invalid value refused, describe --all shows defaults"
+    probe: cli-configs-topic
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli.go (Kafka 4.3.1 kafka-configs.sh)
+  - id: tools.cli.get-offsets
+    group: cli
+    title: "kafka-get-offsets.sh: latest, earliest, max-timestamp inside the log, an old timestamp gives offset 0, a future timestamp gives none"
+    probe: cli-get-offsets
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli.go (Kafka 4.3.1 kafka-get-offsets.sh)
+  - id: tools.cli.delete-records
+    group: cli
+    title: "kafka-delete-records.sh: delete before offset 7 reports low watermark 7, earliest becomes 7, a consumer from the beginning starts at record 7; deleting beyond the end is refused"
+    probe: cli-delete-records
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli.go (Kafka 4.3.1 kafka-delete-records.sh)
+  - id: tools.cli.verifiable-producer-consumer
+    group: cli
+    title: "kafka-verifiable-producer.sh (acks=-1, 300 records) then kafka-verifiable-consumer.sh: every record acked once at a dense offset, consumed exactly once, commits succeed at the end"
+    probe: cli-verifiable
+    provenance: upstream
+    source: Apache Kafka 4.3.1 kafka-verifiable-producer.sh and kafka-verifiable-consumer.sh (the system-test tools); driven by suites/tools/probe/cli.go
+  - id: tools.cli.perf-test
+    group: cli
+    title: "kafka-producer-perf-test.sh (20000 records, acks=all) and kafka-consumer-perf-test.sh complete and count every record (counts only; timings are not compared)"
+    probe: cli-perf-test
+    provenance: upstream
+    source: Apache Kafka 4.3.1 kafka-producer-perf-test.sh and kafka-consumer-perf-test.sh; driven by suites/tools/probe/cli.go
+  - id: tools.cli.broker-api-versions
+    group: cli
+    title: "kafka-broker-api-versions.sh lists the one broker and every API line parses (the version ranges themselves are the protocol track's ApiKey matrix)"
+    probe: cli-broker-api-versions
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli.go (Kafka 4.3.1 kafka-broker-api-versions.sh)
+  # --- Kafka CLI: cluster administration (requests KubeMQ mostly does not serve; see apikey.*) --
+  - id: tools.cli.leader-election
+    group: cli-admin
+    title: "kafka-leader-election.sh, preferred and unclean election on a healthy partition (ElectLeaders, key 43)"
+    probe: cli-leader-election
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli_admin.go (Kafka 4.3.1 kafka-leader-election.sh)
+  - id: tools.cli.metadata-quorum
+    group: cli-admin
+    title: "kafka-metadata-quorum.sh describe --status and --replication (DescribeQuorum, key 55)"
+    probe: cli-metadata-quorum
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli_admin.go (Kafka 4.3.1 kafka-metadata-quorum.sh)
+  - id: tools.cli.transactions-tool
+    group: cli-admin
+    title: "kafka-transactions.sh list, describe, describe-producers, find-hanging (ListTransactions 66, DescribeTransactions 65, DescribeProducers 61)"
+    probe: cli-transactions
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli_admin.go (Kafka 4.3.1 kafka-transactions.sh)
+  - id: tools.cli.reassign-partitions
+    group: cli-admin
+    title: "kafka-reassign-partitions.sh --generate, --list, --execute and --verify of a no-op plan (AlterPartitionAssignments 45, ListPartitionReassignments 46)"
+    probe: cli-reassign-partitions
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli_admin.go (Kafka 4.3.1 kafka-reassign-partitions.sh)
+  - id: tools.cli.log-dirs
+    group: cli-admin
+    title: "kafka-log-dirs.sh --describe of a topic (DescribeLogDirs, key 35)"
+    probe: cli-log-dirs
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli_admin.go (Kafka 4.3.1 kafka-log-dirs.sh)
+  - id: tools.cli.features
+    group: cli-admin
+    title: "kafka-features.sh describe (finalized features in ApiVersions) and a dry-run upgrade (UpdateFeatures, key 57)"
+    probe: cli-features
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli_admin.go (Kafka 4.3.1 kafka-features.sh)
+  - id: tools.cli.delegation-tokens
+    group: cli-admin
+    title: "kafka-delegation-tokens.sh --describe and --create on a plaintext listener (keys 38-41)"
+    probe: cli-delegation-tokens
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli_admin.go (Kafka 4.3.1 kafka-delegation-tokens.sh)
+  - id: tools.cli.configs-broker
+    group: cli-admin
+    title: "kafka-configs.sh on the broker: describe, describe --all, cluster default, broker loggers, set a dynamic config to its default and remove it"
+    probe: cli-configs-broker
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli_admin.go (Kafka 4.3.1 kafka-configs.sh; steps from kubemq-server tests/kafka-conformance admin-tools sweep)
+  - id: tools.cli.cluster-id
+    group: cli-admin
+    title: "kafka-cluster.sh cluster-id prints the cluster id in Kafka's form, a 22-character URL-safe base64 UUID (DescribeCluster, key 60)"
+    probe: cli-cluster-id
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli_admin.go (Kafka 4.3.1 kafka-cluster.sh)
+  - id: tools.cli.unregister-broker
+    group: cli-admin
+    title: "kafka-cluster.sh unregister of an unknown broker id (UnregisterBroker, key 64)"
+    probe: cli-unregister-broker
+    provenance: kubemq-authored
+    source: suites/tools/probe/cli_admin.go (Kafka 4.3.1 kafka-cluster.sh)
+  # --- Kafka Connect, distributed mode ---------------------------------------------------------
+  # One Connect scenario per broker (suites/tools/probe/connect.go); each row is one phase, in order.
+  - id: tools.connect.rf-refusal
+    group: connect
+    title: "Connect worker asking for replication factor 3 on one broker: the refused creation is retried, the herder gives up after Connect's 60 s with a creation timeout, no internal topic exists"
+    probe: connect-rf-refusal
+    provenance: kubemq-authored
+    source: suites/tools/probe/connect.go (Kafka 4.3.1 connect-distributed.sh; ported from kubemq-server tests/kafka-ecosystem/connect.sh)
+  - id: tools.connect.internal-topics
+    group: connect
+    title: "Connect creates its config, offset and status topics: 1, 25 and 5 partitions, cleanup.policy=compact, replication factor 1 (broker default)"
+    probe: connect-internal-topics
+    provenance: kubemq-authored
+    source: suites/tools/probe/connect.go (Kafka 4.3.1 connect-distributed.sh)
+  - id: tools.connect.file-roundtrip
+    group: connect
+    title: "FileStreamSource to topic to FileStreamSink: 200 lines arrive byte for byte; the topic holds exactly 200 records"
+    probe: connect-file-roundtrip
+    provenance: kubemq-authored
+    source: suites/tools/probe/connect.go (Kafka 4.3.1 connect-file connectors)
+  - id: tools.connect.second-worker
+    group: connect
+    title: "A second worker joins the Connect group, work moves onto it, 100 more lines arrive byte for byte"
+    probe: connect-second-worker
+    provenance: kubemq-authored
+    source: suites/tools/probe/connect.go (Kafka 4.3.1 connect-distributed.sh)
+  - id: tools.connect.graceful-restart
+    group: connect
+    title: "Worker stopped with SIGTERM and started again: lines written while it is down and after it returns arrive with no loss and no duplicate"
+    probe: connect-graceful-restart
+    provenance: kubemq-authored
+    source: suites/tools/probe/connect.go (Kafka 4.3.1 connect-distributed.sh)
+  - id: tools.connect.sigkill-sink-worker
+    group: connect
+    title: "SIGKILL of the worker running the sink task once the pipeline is quiet: no loss, no reorder, no duplicate"
+    probe: connect-sigkill-sink
+    provenance: kubemq-authored
+    source: suites/tools/probe/connect.go (Kafka 4.3.1 connect-distributed.sh)
+  - id: tools.connect.final-state
+    group: connect
+    title: "After all phases: the topic holds exactly one record per line, the sink group's committed offset is at the log end, workers loaded kafka-clients 4.3.1"
+    probe: connect-final
+    provenance: kubemq-authored
+    source: suites/tools/probe/connect.go (Kafka 4.3.1 connect-distributed.sh)
+  # --- Kafka Streams ---------------------------------------------------------------------------
+  # One Streams scenario per broker (suites/tools/probe/streams.go): the image's WordCountDemo,
+  # processing.guarantee=exactly_once_v2; each row is one phase, in order.
+  - id: tools.streams.topology-topics
+    group: streams
+    title: "Kafka Streams WordCountDemo creates its repartition topic (delete policy) and changelog topic (compact policy) with the input's 3 partitions, replication factor 1"
+    probe: streams-topology-topics
+    provenance: kubemq-authored
+    source: suites/tools/probe/streams.go (Kafka 4.3.1 kafka-streams-examples WordCountDemo; ported from kubemq-server tests/kafka-ecosystem/streams.sh)
+  - id: tools.streams.word-counts
+    group: streams
+    title: "WordCountDemo over 300 lines: every word's committed updates (read_committed) are exactly 1, 2, ..., c with exact final counts"
+    probe: streams-word-counts
+    provenance: kubemq-authored
+    source: suites/tools/probe/streams.go (Kafka 4.3.1 WordCountDemo, exactly_once_v2)
+  - id: tools.streams.exactly-once
+    group: streams
+    title: "exactly_once_v2 across a crash: 4000 lines stream in, the app is SIGKILLed mid-flight, a fresh instance restores from the changelog and finishes; every word's committed updates are still exactly 1..c"
+    probe: streams-exactly-once
+    provenance: kubemq-authored
+    source: suites/tools/probe/streams.go (Kafka 4.3.1 WordCountDemo, exactly_once_v2)
+  - id: tools.streams.continued-counting
+    group: streams
+    title: "300 more lines on the restored instance continue from the restored counts; the apps loaded kafka-clients 4.3.1"
+    probe: streams-continued-counting
+    provenance: kubemq-authored
+    source: suites/tools/probe/streams.go (Kafka 4.3.1 WordCountDemo, exactly_once_v2)
+  # --- MirrorMaker 2 ---------------------------------------------------------------------------
+  # One MirrorMaker 2 scenario per broker (suites/tools/probe/mm2.go) with a second Apache Kafka
+  # 4.3.1 broker: "into" mirrors Kafka into the broker under test (migration), "from" mirrors the
+  # broker under test into Kafka (rollback).
+  - id: tools.mm2.into.mirror
+    group: mm2
+    title: "MirrorMaker 2, Kafka into the broker under test: remote topic with the source's 3 partitions, equal end offsets, every record's partition, offset, headers, key and value identical"
+    probe: mm2-into-mirror
+    provenance: kubemq-authored
+    source: suites/tools/probe/mm2.go (Kafka 4.3.1 connect-mirror-maker.sh; ported from kubemq-server tests/kafka-ecosystem/mirrormaker2.sh)
+  - id: tools.mm2.into.internal-topics
+    group: mm2
+    title: "MirrorMaker 2, Kafka into the broker under test: offset-syncs, checkpoints, heartbeats and the three Connect topics on the target, with the cleanup policies MirrorMaker 2 asks for"
+    probe: mm2-into-internal
+    provenance: kubemq-authored
+    source: suites/tools/probe/mm2.go (Kafka 4.3.1 connect-mirror-maker.sh)
+  - id: tools.mm2.into.group-offsets
+    group: mm2
+    title: "MirrorMaker 2, Kafka into the broker under test: a source group committed at the end of every partition gets exactly the same offsets on the target"
+    probe: mm2-into-group-offsets
+    provenance: kubemq-authored
+    source: suites/tools/probe/mm2.go (Kafka 4.3.1 connect-mirror-maker.sh)
+  - id: tools.mm2.from.mirror
+    group: mm2
+    title: "MirrorMaker 2, the broker under test into Kafka: remote topic with the source's 3 partitions, equal end offsets, every record identical"
+    probe: mm2-from-mirror
+    provenance: kubemq-authored
+    source: suites/tools/probe/mm2.go (Kafka 4.3.1 connect-mirror-maker.sh)
+  - id: tools.mm2.from.internal-topics
+    group: mm2
+    title: "MirrorMaker 2, the broker under test into Kafka: MirrorMaker 2's internal topics on the Kafka target"
+    probe: mm2-from-internal
+    provenance: kubemq-authored
+    source: suites/tools/probe/mm2.go (Kafka 4.3.1 connect-mirror-maker.sh)
+  - id: tools.mm2.from.group-offsets
+    group: mm2
+    title: "MirrorMaker 2, the broker under test into Kafka: a group committed on the broker under test gets exactly the same offsets on Kafka"
+    probe: mm2-from-group-offsets
+    provenance: kubemq-authored
+    source: suites/tools/probe/mm2.go (Kafka 4.3.1 connect-mirror-maker.sh)
+  # --- Lag and operations tooling ------------------------------------------------------------
+  - id: tools.ops.consumer-offsets-topic
+    group: ops
+    title: "__consumer_offsets is listed and readable with Kafka's OffsetsMessageFormatter; a group's commits appear there with the offsets kafka-consumer-groups.sh reports (what Burrow and offset explorers read)"
+    probe: ops-consumer-offsets-topic
+    provenance: kubemq-authored
+    source: suites/tools/probe/ops.go (Kafka 4.3.1 kafka-console-consumer.sh with org.apache.kafka.tools.consumer.OffsetsMessageFormatter)
+  - id: tools.ops.transaction-state-topic
+    group: ops
+    title: "__transaction_state is listed and readable with Kafka's TransactionLogMessageFormatter after a transactional producer ran; its transactional id appears"
+    probe: ops-transaction-state-topic
+    provenance: kubemq-authored
+    source: suites/tools/probe/ops.go (Kafka 4.3.1 kafka-producer-perf-test.sh --transactional-id, kafka-console-consumer.sh with TransactionLogMessageFormatter)
+  # Third-party lag and monitoring tools, pinned by digest in compose/versions.env, pulled at run
+  # time, never redistributed. One scenario per broker (suites/tools/probe/lagtools.go): a group
+  # with a known lag on every partition; each tool's answer is compared with kafka-consumer-groups.sh.
+  - id: tools.lag.burrow
+    group: lag
+    title: "Burrow v1.9.4 lists the cluster, the topic's end offsets and the group (it reads groups from __consumer_offsets); whether it has lag for the group is reported, not compared (on Kafka 4.3.1 itself Burrow cannot decode the offset commits)"
+    probe: lag-burrow
+    provenance: kubemq-authored
+    source: suites/tools/probe/lagtools.go (Burrow v1.9.4, ghcr.io/linkedin/burrow/burrow)
+  - id: tools.lag.kafka-lag-exporter
+    group: lag
+    title: "kafka-lag-exporter 0.8.2 (archived upstream) exports kafka_consumergroup_group_lag per partition equal to kafka-consumer-groups.sh"
+    probe: lag-kafka-lag-exporter
+    provenance: kubemq-authored
+    source: suites/tools/probe/lagtools.go (kafka-lag-exporter 0.8.2, docker.io/seglo/kafka-lag-exporter)
+  - id: tools.lag.kafbat-ui
+    group: lag
+    title: "Kafbat UI v1.4.2 API: cluster online with one broker, the topic with its partitions and message count, the group with its state and total lag equal to kafka-consumer-groups.sh"
+    probe: lag-kafbat-ui
+    provenance: kubemq-authored
+    source: suites/tools/probe/lagtools.go (Kafbat UI v1.4.2, ghcr.io/kafbat/kafka-ui)

@@ -1,0 +1,9 @@
+# FLAKY quarantine. A row listed here that FAILs is shown as FLAKY instead, with this reason.
+# The releases it has spent FLAKY are counted from the published reports/*/summary.json; in its
+# third release it is FAIL again. Entering quarantine needs 2 of 3 consistent failures and a
+# reviewer sign-off ("<who> <YYYY-MM-DD>").
+#
+#   - row: <row id>
+#     reason: <one line>
+#     signed_off: <who> <YYYY-MM-DD>
+quarantine: []

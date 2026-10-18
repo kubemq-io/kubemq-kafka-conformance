@@ -1,0 +1,49 @@
+# KubeMQ under test: single node, released image pinned by digest in compose/versions.env,
+# Kafka connector enabled on the next storage engine.
+#
+# KUBEMQ_LICENSE_KEY is required. The runner checks it before starting anything; this file
+# refuses to start without it as a second guard. Request an evaluation key from KubeMQ.
+#
+# The Kafka connector advertises one host. KUBEMQ_ADVERTISED_HOST is chosen by the runner:
+# localhost for clients on the host, the host-gateway alias for clients in containers.
+#
+# Data lives on a fresh tmpfs every run. Only the license folder (<store>/license: installation
+# id, accepted-key record, signed lease) is kept in a per-machine volume the runner prepares, so
+# only the first boot on a machine activates against the license server; later boots, including
+# concurrent runs, reuse the lease. The volume holds a credential: never copy it off the machine.
+name: kcert-kubemq-${CERT_RUN_ID:?CERT_RUN_ID is set by runner/certify.sh}
+services:
+  kubemq:
+    image: ${KUBEMQ_IMAGE_REPO}@${KUBEMQ_IMAGE_DIGEST}
+    container_name: kcert-kubemq-${CERT_RUN_ID:?CERT_RUN_ID is set by runner/certify.sh}
+    hostname: kubemq
+    ports:
+      - "${CERT_BIND_ADDR:-127.0.0.1}:${KUBEMQ_KAFKA_PORT}:${KUBEMQ_KAFKA_PORT}"
+      - "${CERT_BIND_ADDR:-127.0.0.1}:${KUBEMQ_API_PORT}:${KUBEMQ_API_PORT}"
+    environment:
+      KUBEMQ_LICENSE_KEY: ${KUBEMQ_LICENSE_KEY:?KUBEMQ_LICENSE_KEY is not set. Request a KubeMQ evaluation key and export it before running.}
+      STORE_ENGINE: next
+      API_PORT: ${KUBEMQ_API_PORT}
+      CONNECTORS_KAFKA_ENABLE: "true"
+      CONNECTORS_KAFKA_PORT: ${KUBEMQ_KAFKA_PORT}
+      CONNECTORS_KAFKA_ADVERTISED_HOST: ${KUBEMQ_ADVERTISED_HOST:-127.0.0.1}
+      # Symmetric broker configuration (docs/methodology.md): committed offsets of an empty group
+      # expire after 1 minute, as on the oracle, for the offset-retention row.
+      CONNECTORS_KAFKA_OFFSETS_RETENTION_MINUTES: "1"
+      # Only the Kafka connector is under test. Names are exactly what the server derives from its
+      # config keys (MQTT has no underscore after CONNECTORS); a near-miss is silently ignored.
+      CONNECTORS_AMQP_ENABLE: "false"
+      CONNECTORS_AMQP_MANAGEMENT_ENABLE: "false"
+      CONNECTORS_AMQP10_ENABLE: "false"
+      CONNECTORSMQTT_ENABLE: "false"
+      CONNECTORS_STOMP_ENABLE: "false"
+      CONNECTORS_AWS_ENABLE: "false"
+      CONNECTORS_GCP_ENABLE: "false"
+    tmpfs:
+      - /kubemq/store:mode=1777
+    volumes:
+      - license:/kubemq/store/license
+volumes:
+  license:
+    external: true
+    name: ${KUBEMQ_LICENSE_VOLUME:?KUBEMQ_LICENSE_VOLUME is set by runner/certify.sh}

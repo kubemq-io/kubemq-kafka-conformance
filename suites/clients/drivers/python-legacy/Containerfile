@@ -1,0 +1,11 @@
+# Legacy confluent-kafka-python driver of the clients track (SCENARIO.md): the drivers/python
+# sources, copied unchanged, with confluent-kafka 2.6.1 in requirements.txt. Built by
+# suites/clients/build-driver.sh with the pinned image of suites/clients/clients.env.
+ARG RUNTIME_IMAGE
+FROM ${RUNTIME_IMAGE}
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir --require-hashes --only-binary=:all: -r /app/requirements.txt
+COPY driver.py /app/driver.py
+USER 65532:65532
+ENV PYTHONUNBUFFERED=1
+ENTRYPOINT ["python3", "/app/driver.py"]

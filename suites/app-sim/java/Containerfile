@@ -1,0 +1,16 @@
+# Java orders application (kafka-clients) of the app-sim track, built with the pinned Maven image
+# and run on the pinned JRE (suites/app-sim/app-sim.env). Built by suites/app-sim/track.sh.
+ARG BUILD_IMAGE
+ARG RUNTIME_IMAGE
+FROM ${BUILD_IMAGE} AS build
+ARG KAFKA_CLIENTS_VERSION
+WORKDIR /src
+COPY pom.xml .
+RUN mvn -q -B -Dkafka.clients.version=${KAFKA_CLIENTS_VERSION} dependency:go-offline
+COPY OrdersApp.java .
+RUN mvn -q -B -o -Dkafka.clients.version=${KAFKA_CLIENTS_VERSION} package && mv target/${KAFKA_CLIENTS_VERSION} /out
+
+FROM ${RUNTIME_IMAGE}
+COPY --from=build /out/orders-app.jar /app/orders-app.jar
+COPY --from=build /out/lib /app/lib
+ENTRYPOINT ["java", "-cp", "/app/orders-app.jar:/app/lib/*", "OrdersApp"]

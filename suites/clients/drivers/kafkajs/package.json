@@ -1,0 +1,9 @@
+{
+  "name": "kcert-driver-kafkajs",
+  "private": true,
+  "description": "KafkaJS driver of the clients track (suites/clients/SCENARIO.md)",
+  "main": "driver.js",
+  "dependencies": {
+    "kafkajs": "2.2.4"
+  }
+}

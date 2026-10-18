@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The Java half of the Kafka application simulator: plain kafka-clients, nothing KubeMQ-specific.
+
+  The client version is a PARAMETER, not a pin: kafka.clients.version defaults to 4.3.1 (the Apache
+  Kafka release under certification) and run.sh passes -Dkafka.clients.version=$KAFKA_CLIENTS_VERSION.
+  4.4.0-rc1 is on no Maven repository; tests/kafka-conformance/install-rc-clients.sh installs it from
+  the docker.io/apache/kafka:4.4.0-rc1 image into a local repository, which run.sh mounts.
+
+  The build directory is scoped by that version (target/<version>/), so switching versions can never
+  run classes or a lib/ directory left behind by another version. The app also prints and records
+  the version it actually loaded (AppInfoParser), and run.sh and verify.py refuse a mismatch — the
+  directory scoping is a convenience, the runtime check is the proof.
+
+  slf4j-simple stays on the 1.7.x line: kafka-clients 4.x still depends on slf4j-api 1.7.36, and a
+  2.x binding cannot pair with it (it silently falls back to the no-op logger).
+  `mvn package` puts the jar in target/<version>/ and every dependency in target/<version>/lib/, so
+  run.sh can start the app with a plain `java -cp` and pay Maven's startup once rather than per command.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.kubemq.appsim</groupId>
+  <artifactId>orders-app</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+
+  <properties>
+    <maven.compiler.release>17</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <kafka.clients.version>4.3.1</kafka.clients.version>
+    <slf4j.version>1.7.36</slf4j.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka-clients</artifactId>
+      <version>${kafka.clients.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <directory>${project.basedir}/target/${kafka.clients.version}</directory>
+    <finalName>orders-app</finalName>
+    <sourceDirectory>${project.basedir}</sourceDirectory>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.6.1</version>
+        <executions>
+          <execution>
+            <id>copy-deps</id>
+            <phase>package</phase>
+            <goals><goal>copy-dependencies</goal></goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/lib</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

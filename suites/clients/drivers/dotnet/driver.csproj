@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Confluent.Kafka driver of the clients track (suites/clients/SCENARIO.md). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>driver</AssemblyName>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Pinned in suites/clients/clients.env; bundles librdkafka 2.15.1 (librdkafka.redist). -->
+    <PackageReference Include="Confluent.Kafka" Version="[2.15.1]" />
+  </ItemGroup>
+</Project>

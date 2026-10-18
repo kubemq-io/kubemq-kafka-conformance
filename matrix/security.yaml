@@ -1,0 +1,302 @@
+# Track E security rows. Each row names the posture both brokers are booted in (the runner reboots
+# them per posture, suites/security/track.env TRACK_POSTURES); its probe runs on the Kafka oracle,
+# then on KubeMQ with only the addresses changed, and the observations are compared field by
+# field (suites/security). Every row records its provenance and source.
+track: security
+rows:
+  # --- TLS (posture tls: plain port PLAINTEXT, TLS port SSL, no client certificate asked) -----
+  - id: security.tls.round-trip
+    group: tls
+    posture: tls
+    title: "TLS port only: create a topic, produce 30 records, consume them back in order; TLS version negotiated"
+    probe: tls-round-trip
+    provenance: kubemq-authored
+    source: suites/security/probe/tls.go (franz-go client, Go crypto/tls)
+  - id: security.tls.advertised-port
+    group: tls
+    posture: tls
+    title: "A client that bootstraps on the TLS port is sent back to the TLS port by Metadata"
+    probe: tls-advertised-port
+    provenance: kubemq-authored
+    source: suites/security/probe/tls.go (franz-go client, Go crypto/tls)
+  - id: security.tls.plaintext-client-refused
+    group: tls
+    posture: tls
+    title: "A plaintext ApiVersions request on the TLS port gets no Kafka answer and the connection is closed"
+    probe: tls-plaintext-client-refused
+    provenance: kubemq-authored
+    source: suites/security/probe/tls.go (raw TCP)
+  - id: security.tls.protocol-versions
+    group: tls
+    posture: tls
+    title: "Handshake limited to one TLS version: 1.0 and 1.1 refused, 1.2 and 1.3 accepted (Kafka 4.x defaults)"
+    probe: tls-protocol-versions
+    provenance: kubemq-authored
+    source: suites/security/probe/tls.go (Go crypto/tls)
+  # --- mTLS (posture mtls: TLS port requires a client certificate; authorization on) ---------
+  - id: security.mtls.trusted-client
+    group: mtls
+    posture: mtls
+    title: "Client certificate from the trusted authority: create a topic, produce 30 records, consume them back"
+    probe: mtls-trusted-client
+    provenance: kubemq-authored
+    source: suites/security/probe/mtls.go (franz-go client, Go crypto/tls)
+  - id: security.mtls.no-client-certificate
+    group: mtls
+    posture: mtls
+    title: "No client certificate: the broker refuses the connection before any Kafka answer"
+    probe: mtls-no-client-certificate
+    provenance: kubemq-authored
+    source: suites/security/probe/mtls.go (Go crypto/tls, raw ApiVersions)
+  - id: security.mtls.untrusted-client-certificate
+    group: mtls
+    posture: mtls
+    title: "Client certificate from an untrusted authority, sent anyway: the broker refuses the connection"
+    probe: mtls-untrusted-client-certificate
+    provenance: kubemq-authored
+    source: suites/security/probe/mtls.go (Go crypto/tls, raw ApiVersions)
+  - id: security.mtls.principal
+    group: mtls
+    posture: mtls
+    title: "Principal from the certificate: a grant to alice's full distinguished name (Kafka's default mapping) lets her produce, a grant to her common name alone does not"
+    probe: mtls-principal
+    provenance: kubemq-authored
+    source: suites/security/probe/mtls.go (franz-go client; Kafka ACLs and the equivalent KubeMQ policy)
+  # --- SASL (posture sasl: plain port SASL_PLAINTEXT, TLS port SASL_SSL; users alice, admin) --
+  - id: security.sasl.plain
+    group: sasl
+    posture: sasl
+    title: "SASL/PLAIN on both ports: alice logs in and round-trips 10 records; wrong password and unknown user refused"
+    probe: sasl-plain
+    provenance: kubemq-authored
+    source: suites/security/probe/sasl.go (franz-go client)
+  - id: security.sasl.scram-sha-256
+    group: sasl
+    posture: sasl
+    title: "SASL/SCRAM-SHA-256 on both ports: alice logs in and round-trips 10 records; wrong password and unknown user refused"
+    probe: sasl-scram-sha-256
+    provenance: kubemq-authored
+    source: suites/security/probe/sasl.go (franz-go client)
+  - id: security.sasl.scram-sha-512
+    group: sasl
+    posture: sasl
+    title: "SASL/SCRAM-SHA-512 on both ports: alice logs in and round-trips 10 records; wrong password and unknown user refused"
+    probe: sasl-scram-sha-512
+    provenance: kubemq-authored
+    source: suites/security/probe/sasl.go (franz-go client)
+  - id: security.sasl.handshake-unknown-mechanism
+    group: sasl
+    posture: sasl
+    title: "SaslHandshake asking for a mechanism that is not enabled (GSSAPI): error code and the enabled-mechanism list, both ports"
+    probe: sasl-handshake-unknown-mechanism
+    provenance: kubemq-authored
+    source: suites/security/probe/sasl.go (raw SaslHandshake v1)
+  - id: security.sasl.no-credentials
+    group: sasl
+    posture: sasl
+    title: "A client that skips SASL: ApiVersions is answered, Metadata before login is not, both ports"
+    probe: sasl-no-credentials
+    provenance: kubemq-authored
+    source: suites/security/probe/sasl.go (raw ApiVersions v0, Metadata v0)
+  - id: security.sasl.describe-user-scram-credentials
+    group: sasl
+    posture: sasl
+    title: "DescribeUserScramCredentials: alice's mechanisms and iteration counts; an unknown user's error"
+    probe: sasl-describe-user-scram-credentials
+    provenance: kubemq-authored
+    source: suites/security/probe/sasl.go (franz-go kadm)
+  - id: security.sasl.alter-user-scram-credentials
+    group: sasl
+    posture: sasl
+    title: "AlterUserScramCredentials creates a SCRAM-SHA-256 user at run time, who can then log in"
+    probe: sasl-alter-user-scram-credentials
+    provenance: kubemq-authored
+    source: suites/security/probe/sasl.go (franz-go kadm)
+  # --- OAUTHBEARER (posture oauth: as sasl, plus OAUTHBEARER with tokens from the run's issuer) -
+  - id: security.oauthbearer.valid-token
+    group: oauthbearer
+    posture: oauth
+    title: "OAUTHBEARER on the TLS port with a valid token: login and a 10-record round trip"
+    probe: oauthbearer-valid-token
+    provenance: kubemq-authored
+    source: suites/security/probe/oauth.go (franz-go client; RS256 tokens from suites/security/oidc)
+  - id: security.oauthbearer.invalid-tokens
+    group: oauthbearer
+    posture: oauth
+    title: "OAUTHBEARER on the TLS port refuses an expired token, a wrong audience, a wrong issuer and a bad signature"
+    probe: oauthbearer-invalid-tokens
+    provenance: kubemq-authored
+    source: suites/security/probe/oauth.go (franz-go client with an RFC 7628 OAUTHBEARER mechanism, as the Java client behaves; RS256 tokens from suites/security/oidc)
+  - id: security.oauthbearer.error-challenge
+    group: oauthbearer
+    posture: oauth
+    title: "Expired token: the server's RFC 7628 error challenge before it fails the login (wire detail; the client-visible result is the invalid-tokens row)"
+    probe: oauthbearer-error-challenge
+    provenance: kubemq-authored
+    source: suites/security/probe/oauth.go (RFC 7628 client)
+  - id: security.oauthbearer.plain-port
+    group: oauthbearer
+    posture: oauth
+    title: "OAUTHBEARER with a valid token on the SASL_PLAINTEXT port (Kafka allows it on any SASL listener)"
+    probe: oauthbearer-plain-port
+    provenance: kubemq-authored
+    source: suites/security/probe/oauth.go (franz-go client; RS256 tokens from suites/security/oidc)
+  # --- Re-authentication, KIP-368 (posture reauth: as sasl; both brokers set connections.max.reauth.ms=10000) -
+  - id: security.reauth.session-lifetime
+    group: reauth
+    posture: reauth
+    title: "SaslAuthenticate gives the session a lifetime (KIP-368) on both ports"
+    probe: reauth-session-lifetime
+    provenance: kubemq-authored
+    source: suites/security/probe/reauth.go (raw SaslHandshake v1 and SaslAuthenticate v1, PLAIN)
+  - id: security.reauth.same-connection
+    group: reauth
+    posture: reauth
+    title: "A second SaslHandshake and SaslAuthenticate on a logged-in connection re-authenticates it; Metadata answered after"
+    probe: reauth-same-connection
+    provenance: kubemq-authored
+    source: suites/security/probe/reauth.go (raw SaslHandshake v1 and SaslAuthenticate v1, PLAIN)
+  - id: security.reauth.expired-session
+    group: reauth
+    posture: reauth
+    title: "A client that never re-authenticates: Metadata within the window is answered, after the window the connection is closed"
+    probe: reauth-expired-session
+    provenance: kubemq-authored
+    source: suites/security/probe/reauth.go (raw SaslAuthenticate v1, PLAIN, Metadata v0)
+  - id: security.reauth.franz-go-long-session
+    group: reauth
+    posture: reauth
+    title: "franz-go SCRAM-SHA-512 producer across two and a half re-authentication windows: every record acknowledged"
+    probe: reauth-franz-go-long-session
+    provenance: kubemq-authored
+    source: suites/security/probe/reauth.go (franz-go client)
+  - id: security.reauth.java-long-session
+    group: reauth
+    posture: reauth
+    title: "kafka-verifiable-producer (Java kafka-clients 4.3.1, SCRAM-SHA-512) across two and a half re-authentication windows: every record acknowledged"
+    probe: reauth-java-long-session
+    provenance: upstream
+    source: Apache Kafka kafka-verifiable-producer.sh (oracle image), suites/security/probe/reauth_clients.go
+  - id: security.reauth.librdkafka-long-session
+    group: reauth
+    posture: reauth
+    title: "confluent-kafka-python 2.15.1 (librdkafka 2.15.1, SCRAM-SHA-512) across two and a half re-authentication windows: every record acknowledged"
+    probe: reauth-librdkafka-long-session
+    provenance: kubemq-authored
+    source: suites/security/drivers/reauth_librdkafka.py, suites/security/probe/reauth_clients.go
+  # --- ACLs (posture acl: SASL users, authorization on; alice's grants written for each product) -
+  - id: security.acl.produce
+    group: acl
+    posture: acl
+    title: "alice produces to a topic she may write and to one she was not granted"
+    probe: acl-produce
+    provenance: kubemq-authored
+    source: suites/security/probe/acl.go (franz-go client; Kafka ACLs and the equivalent KubeMQ policy)
+  - id: security.acl.consume
+    group: acl
+    posture: acl
+    title: "alice consumes and commits in a group she may read; a not-granted topic; a not-granted group"
+    probe: acl-consume
+    provenance: kubemq-authored
+    source: suites/security/probe/acl.go (franz-go client; Kafka ACLs and the equivalent KubeMQ policy)
+  - id: security.acl.create-topic
+    group: acl
+    posture: acl
+    title: "alice creates a topic under her granted prefix and one outside it"
+    probe: acl-create-topic
+    provenance: kubemq-authored
+    source: suites/security/probe/acl.go (franz-go client; Kafka ACLs and the equivalent KubeMQ policy)
+  - id: security.acl.idempotent-producer
+    group: acl
+    posture: acl
+    title: "alice's idempotent producer (every current client's default) on a topic she may write, with no cluster-level grant"
+    probe: acl-idempotent-producer
+    provenance: kubemq-authored
+    source: suites/security/probe/acl.go (franz-go client; Kafka ACLs and the equivalent KubeMQ policy)
+  - id: security.acl.transactional-producer
+    group: acl
+    posture: acl
+    title: "alice runs a transaction with a granted transactional id and with a not-granted one"
+    probe: acl-transactional-producer
+    provenance: kubemq-authored
+    source: suites/security/probe/acl.go (franz-go client; Kafka ACLs and the equivalent KubeMQ policy)
+  - id: security.acl.deny-rule
+    group: acl
+    posture: acl
+    title: "A DENY rule on one topic inside alice's granted prefix overrides the allow"
+    probe: acl-deny-rule
+    provenance: kubemq-authored
+    source: suites/security/probe/acl.go (franz-go client; DENY ACL created through CreateAcls on both brokers)
+  - id: security.acl.metadata-visibility
+    group: acl
+    posture: acl
+    title: "alice lists all topics: a topic she was not granted is hidden"
+    probe: acl-metadata-visibility
+    provenance: kubemq-authored
+    source: suites/security/probe/acl.go (franz-go client; Kafka ACLs and the equivalent KubeMQ policy)
+  - id: security.acl.write-implies-describe
+    group: acl
+    posture: acl
+    title: "alice has only Write on a topic: Metadata for it is answered (Kafka's Write implies Describe) and she produces to it"
+    probe: acl-write-implies-describe
+    provenance: kubemq-authored
+    source: suites/security/probe/acl.go (franz-go client; Kafka ACLs and the equivalent KubeMQ policy)
+  - id: security.acl.admin-apis
+    group: acl
+    posture: acl
+    title: "As admin: DescribeAcls lists the rules, CreateAcls and DeleteAcls change them at run time"
+    probe: acl-admin-apis
+    provenance: kubemq-authored
+    source: suites/security/probe/acl.go (franz-go kadm)
+  # --- Quotas (posture quota: SASL users; every user has a 256 KiB/s produce and fetch quota) -----
+  - id: security.quota.produce-honouring-client
+    group: quota
+    posture: quota
+    title: "franz-go (waits out throttle times) produces 6 MiB at a 256 KiB/s quota: throttle signalled, rate held"
+    probe: quota-produce-honouring-client
+    provenance: kubemq-authored
+    source: suites/security/probe/quota.go (franz-go client; Kafka default user quota, KubeMQ producebyterate)
+  - id: security.quota.produce-ignoring-client
+    group: quota
+    posture: quota
+    title: "sarama sync producer (a second client library) produces 6 MiB at a 256 KiB/s quota: rate held"
+    probe: quota-produce-ignoring-client
+    provenance: kubemq-authored
+    source: suites/security/probe/quota.go (sarama client; Kafka default user quota, KubeMQ producebyterate)
+  - id: security.quota.fetch-honouring-client
+    group: quota
+    posture: quota
+    title: "franz-go consumes 6 MiB at a 256 KiB/s fetch quota: throttle signalled, rate held"
+    probe: quota-fetch-honouring-client
+    provenance: kubemq-authored
+    source: suites/security/probe/quota.go (franz-go client; Kafka default user quota, KubeMQ fetchbyterate)
+  - id: security.quota.describe
+    group: quota
+    posture: quota
+    title: "DescribeClientQuotas for every user entity: the configured quotas"
+    probe: quota-describe
+    provenance: kubemq-authored
+    source: suites/security/probe/quota.go (franz-go kadm)
+  - id: security.quota.alter
+    group: quota
+    posture: quota
+    title: "AlterClientQuotas raises one user's produce quota at run time"
+    probe: quota-alter
+    provenance: kubemq-authored
+    source: suites/security/probe/quota.go (franz-go kadm)
+  # --- Mechanisms KubeMQ does not offer ------------------------------------------------------
+  - id: security.delegation-tokens.create-and-login
+    group: unsupported
+    posture: sasl
+    title: "alice creates a delegation token (CreateDelegationToken) and logs in with it (SCRAM with tokenauth=true)"
+    probe: delegation-token
+    provenance: kubemq-authored
+    source: suites/security/probe/unsupported.go (franz-go kadm and SCRAM token login)
+  - id: security.gssapi.configurable
+    group: unsupported
+    posture: tls
+    kind: advertisement
+    title: "SASL/GSSAPI (Kerberos) can be configured. No oracle leg: Kafka supports it as documented; KubeMQ's configuration validation is run on the released image"
+    probe: gssapi-configurable
+    provenance: kubemq-authored
+    source: suites/security/probe/unsupported.go (KubeMQ image with GSSAPI in its mechanism list)

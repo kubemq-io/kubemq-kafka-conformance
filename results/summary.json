@@ -1,0 +1,1939 @@
+{
+  "run": {
+    "started_utc": "2026-10-17T08:24:54Z",
+    "finished_utc": "2026-10-17T09:55:44Z",
+    "mode": "merged",
+    "tracks": [
+      "protocol",
+      "features",
+      "transactions",
+      "clients",
+      "app-sim",
+      "tools",
+      "security",
+      "perf",
+      "operations",
+      "migration"
+    ],
+    "command": "",
+    "operator": "",
+    "machine": "1 machines, see Runs",
+    "repo": {
+      "commit": "",
+      "dirty": false
+    },
+    "raw_logs": {
+      "file": "",
+      "sha256": ""
+    },
+    "kafka": {
+      "version": "4.3.1",
+      "image": "docker.io/apache/kafka",
+      "digest": "sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837"
+    },
+    "kubemq": {
+      "version": "",
+      "image": "",
+      "digest": ""
+    },
+    "clients": {},
+    "engine": {
+      "name": "per run, see Runs",
+      "runtime": "",
+      "arch": "",
+      "version": "",
+      "host_os": ""
+    },
+    "sources": [
+      {
+        "label": "",
+        "tracks": [
+          "protocol",
+          "features",
+          "transactions",
+          "clients",
+          "app-sim",
+          "tools",
+          "security",
+          "perf",
+          "operations"
+        ],
+        "superseded": [
+          "migration"
+        ],
+        "started_utc": "2026-10-17T08:24:54Z",
+        "finished_utc": "2026-10-17T09:41:39Z",
+        "command": "",
+        "operator": "",
+        "machine": "macOS 27.0.1, arm64, Apple M4 Pro, 14 cores, 64 GiB",
+        "repo": {
+          "commit": "",
+          "dirty": false
+        },
+        "raw_logs": {
+          "file": "",
+          "sha256": ""
+        },
+        "engine": {
+          "name": "podman",
+          "runtime": "podman",
+          "arch": "arm64",
+          "version": "6.0.1",
+          "host_os": "Darwin"
+        }
+      },
+      {
+        "label": "",
+        "tracks": [
+          "migration"
+        ],
+        "started_utc": "2026-10-17T09:44:28Z",
+        "finished_utc": "2026-10-17T09:55:44Z",
+        "command": "",
+        "operator": "",
+        "machine": "macOS 27.0.1, arm64, Apple M4 Pro, 14 cores, 64 GiB",
+        "repo": {
+          "commit": "",
+          "dirty": false
+        },
+        "raw_logs": {
+          "file": "",
+          "sha256": ""
+        },
+        "engine": {
+          "name": "podman",
+          "runtime": "podman",
+          "arch": "arm64",
+          "version": "6.0.1",
+          "host_os": "Darwin"
+        }
+      }
+    ]
+  },
+  "passed": true,
+  "tracks": [
+    {
+      "track": "protocol",
+      "counts": {
+        "GAP": 4,
+        "PASS": 78
+      },
+      "rows": 82,
+      "behaviour_rows": 5,
+      "void_share_of_behaviour_rows": 0,
+      "void_over_budget": false,
+      "provenance_upstream": 0,
+      "provenance_kubemq_authored": 82,
+      "broker_internal_not_applicable": 6,
+      "passed": true
+    },
+    {
+      "track": "features",
+      "counts": {
+        "GAP": 1,
+        "PASS": 58
+      },
+      "rows": 59,
+      "behaviour_rows": 59,
+      "void_share_of_behaviour_rows": 0,
+      "void_over_budget": false,
+      "provenance_upstream": 0,
+      "provenance_kubemq_authored": 59,
+      "passed": true
+    },
+    {
+      "track": "transactions",
+      "counts": {
+        "PASS": 23
+      },
+      "rows": 23,
+      "behaviour_rows": 23,
+      "void_share_of_behaviour_rows": 0,
+      "void_over_budget": false,
+      "provenance_upstream": 1,
+      "provenance_kubemq_authored": 22,
+      "passed": true
+    },
+    {
+      "track": "clients",
+      "counts": {
+        "PASS": 25
+      },
+      "rows": 25,
+      "behaviour_rows": 25,
+      "void_share_of_behaviour_rows": 0,
+      "void_over_budget": false,
+      "provenance_upstream": 1,
+      "provenance_kubemq_authored": 24,
+      "passed": true
+    },
+    {
+      "track": "app-sim",
+      "counts": {
+        "PASS": 1
+      },
+      "rows": 1,
+      "behaviour_rows": 1,
+      "void_share_of_behaviour_rows": 0,
+      "void_over_budget": false,
+      "provenance_upstream": 0,
+      "provenance_kubemq_authored": 1,
+      "passed": true
+    },
+    {
+      "track": "tools",
+      "counts": {
+        "PASS": 44
+      },
+      "rows": 44,
+      "behaviour_rows": 44,
+      "void_share_of_behaviour_rows": 0,
+      "void_over_budget": false,
+      "provenance_upstream": 2,
+      "provenance_kubemq_authored": 42,
+      "passed": true
+    },
+    {
+      "track": "security",
+      "counts": {
+        "GAP": 3,
+        "PASS": 38
+      },
+      "rows": 41,
+      "behaviour_rows": 40,
+      "void_share_of_behaviour_rows": 0,
+      "void_over_budget": false,
+      "provenance_upstream": 1,
+      "provenance_kubemq_authored": 40,
+      "passed": true
+    },
+    {
+      "track": "perf",
+      "counts": {},
+      "rows": 0,
+      "behaviour_rows": 0,
+      "void_share_of_behaviour_rows": 0,
+      "void_over_budget": false,
+      "provenance_upstream": 0,
+      "provenance_kubemq_authored": 0,
+      "measurements": 9,
+      "passed": true
+    },
+    {
+      "track": "operations",
+      "counts": {
+        "GAP": 1,
+        "PASS": 30
+      },
+      "rows": 31,
+      "behaviour_rows": 31,
+      "void_share_of_behaviour_rows": 0,
+      "void_over_budget": false,
+      "provenance_upstream": 0,
+      "provenance_kubemq_authored": 31,
+      "passed": true
+    },
+    {
+      "track": "migration",
+      "counts": {
+        "PASS": 7
+      },
+      "rows": 7,
+      "behaviour_rows": 7,
+      "void_share_of_behaviour_rows": 0,
+      "void_over_budget": false,
+      "provenance_upstream": 1,
+      "provenance_kubemq_authored": 6,
+      "passed": true
+    }
+  ],
+  "totals": {
+    "GAP": 9,
+    "PASS": 304
+  },
+  "clients_ran": {
+    "confluent-kafka-dotnet": "2.15.1 (librdkafka 2.15.1)",
+    "confluent-kafka-go": "v2.15.1 (librdkafka 2.15.1)",
+    "confluent-kafka-python": "2.6.1 (librdkafka 2.6.1)",
+    "confluent-kafka-python (app-sim)": "2.15.1",
+    "franz-go": "v1.22.0",
+    "java": "kafka-clients 4.3.1",
+    "kafka-clients": "4.3.1",
+    "kafka-clients (app-sim)": "4.3.1",
+    "kafka-perf-tools": "4.3.1",
+    "kafka-tools": "4.3.1",
+    "kafka-tools-image": "docker.io/apache/kafka@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837",
+    "kafkajs": "2.2.4",
+    "kcat": "1.7.1 (librdkafka 2.10.0)",
+    "librdkafka": "confluent-kafka 2.15.1 (librdkafka 2.15.1)",
+    "sarama": "v1.61.0",
+    "segmentio-kafka-go": "v0.4.51",
+    "segmentio/kafka-go": "v0.4.51",
+    "spring-kafka": "4.1.1 (kafka-clients 4.2.1)"
+  },
+  "opt_in_tracks_not_run": [
+    "schema-registry"
+  ],
+  "rows": {
+    "app-sim": [
+      {
+        "id": "app-sim.orders-apps",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      }
+    ],
+    "clients": [
+      {
+        "id": "clients.franz-go.scenario",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.franz-go.stock-defaults",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.kafka-clients.scenario",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.kafka-clients.stock-defaults",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.kafka-clients.verifiable",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      },
+      {
+        "id": "clients.confluent-kafka-python.scenario",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.confluent-kafka-python.stock-defaults",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.sarama.scenario",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.sarama.stock-defaults",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.segmentio-kafka-go.scenario",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.segmentio-kafka-go.stock-defaults",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.kcat.scenario",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.kcat.stock-defaults",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.confluent-kafka-go.scenario",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.confluent-kafka-go.stock-defaults",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.confluent-kafka-dotnet.scenario",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.confluent-kafka-dotnet.stock-defaults",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.kafkajs.scenario",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.kafkajs.stock-defaults",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.spring-kafka.scenario",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.spring-kafka.stock-defaults",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.kafka-clients-legacy.scenario",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.kafka-clients-legacy.stock-defaults",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.confluent-kafka-python-legacy.scenario",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "clients.confluent-kafka-python-legacy.stock-defaults",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      }
+    ],
+    "features": [
+      {
+        "id": "features.produce.acks-0",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.produce.acks-1",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.produce.acks-all",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.produce.codec-gzip",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.produce.codec-snappy",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.produce.codec-lz4",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.produce.codec-zstd",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.produce.broker-recompression",
+        "verdict": "GAP",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.produce.headers",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.produce.default-partitioner",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.produce.max-message-bytes",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.groups.assignor-range",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.groups.assignor-roundrobin",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.groups.assignor-sticky",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.groups.assignor-cooperative-sticky",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.groups.rebalance-join-leave-crash",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.groups.session-timeout-bounds",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.groups.rebalance-timeout-expiry",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.groups.static-membership",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.groups.offset-reset-policies",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.offsets.commit-fetch",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.offsets.commit-generation-checks",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.offsets.multi-group-fetch",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.offsets.delete-records",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.offsets.retention",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.offsets.delete-group-offsets",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.timestamp-createtime",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.timestamp-logappendtime",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.timestamp-validation",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.listoffsets-specs",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.compaction",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.compaction-batched-compressed",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.compaction-dirty-ratio",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.compaction-max-lag",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.compaction-java-gzip",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.compaction-java-snappy",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.compaction-java-lz4",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.compaction-java-zstd",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.retention-ms",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.retention-ms-zero",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.retention-bytes",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.log.retention-bytes-compact-delete",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.fetch.sessions",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.fetch.kip74-oversized-first-record",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.fetch.min-bytes",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.fetch.long-poll",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.admin.topics",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.admin.partitions",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.admin.partition-limit",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.admin.configs",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.admin.groups",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.admin.long-topic-names",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.wire.apiversions-downgrade",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.wire.listoffsets-in-batch",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.wire.listoffsets-layouts",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.wire.listoffsets-transactions",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.wire.out-of-range-reset",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.wire.topic-ids",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "features.wire.error-codes",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      }
+    ],
+    "migration": [
+      {
+        "id": "migration.offsets.mid-log",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "migration.cutover.resume.franz-go",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "migration.cutover.resume.kafka-clients",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      },
+      {
+        "id": "migration.mm2.compacted-fidelity",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "migration.mm2.transactional-fidelity",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "migration.mm2.config-refusal",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "migration.rollback.end-to-end",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      }
+    ],
+    "operations": [
+      {
+        "id": "operations.metrics.messages-in",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.bytes-in",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.bytes-out",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.per-topic-labels",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.produce-requests",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.fetch-requests",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.errors-by-code",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.produce-latency",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.fetch-latency",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.active-controller",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.under-replicated",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.under-min-isr",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.offline-partitions",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.leadership",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.log-end-offset",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.log-size",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.connections",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.metrics.open-files",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.lag.group-lag",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.lag.partition-0",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.lag.partition-1",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.lag.partition-2",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.lag.caught-up",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.lag.active-member",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.config.topic-defaults",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.config.segment-bytes",
+        "verdict": "GAP",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.config.create-defaults",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.config.unknown-topic-key",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.config.min-insync-zero",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.config.auto-create",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "operations.config.txn-timeout-too-big",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      }
+    ],
+    "perf": [
+      {
+        "id": "perf.produce.100b.acks-all",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      },
+      {
+        "id": "perf.produce.100b.acks-1",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      },
+      {
+        "id": "perf.consume.100b",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      },
+      {
+        "id": "perf.produce.1kib.acks-all",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      },
+      {
+        "id": "perf.produce.1kib.acks-1",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      },
+      {
+        "id": "perf.consume.1kib",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      },
+      {
+        "id": "perf.produce.10kib.acks-all",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      },
+      {
+        "id": "perf.produce.10kib.acks-1",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      },
+      {
+        "id": "perf.consume.10kib",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      }
+    ],
+    "protocol": [
+      {
+        "id": "apikeys.matrix-current",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.0",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.1",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.2",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.3",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.8",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.9",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.10",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.11",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.12",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.13",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.14",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.15",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.16",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.17",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.18",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.19",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.20",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.21",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.22",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.23",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.24",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.25",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.26",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.27",
+        "verdict": "NOT-APPLICABLE",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.28",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.29",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.30",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.31",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.32",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.33",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.34",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.35",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.36",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.37",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.38",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.39",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.40",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.41",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.42",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.43",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.44",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.45",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.46",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.47",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.48",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.49",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.50",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.51",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.55",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.57",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.60",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.61",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.64",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.65",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.66",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.68",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.69",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.74",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.75",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.76",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.77",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.78",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.79",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.80",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.81",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.83",
+        "verdict": "NOT-APPLICABLE",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.84",
+        "verdict": "NOT-APPLICABLE",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.85",
+        "verdict": "NOT-APPLICABLE",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.86",
+        "verdict": "NOT-APPLICABLE",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.87",
+        "verdict": "NOT-APPLICABLE",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.88",
+        "verdict": "GAP",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.89",
+        "verdict": "GAP",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.90",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.91",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "apikey.92",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "feature.eligible.leader.replicas.version",
+        "verdict": "GAP",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "feature.group.version",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "feature.kraft.version",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "feature.metadata.version",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "feature.share.version",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "feature.streams.version",
+        "verdict": "GAP",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "feature.transaction.version",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "protocol.core.kgo",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "protocol.multipartition.kgo",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "protocol.transactions.kgo",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "protocol.core.sarama",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "protocol.core.segmentio",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      }
+    ],
+    "security": [
+      {
+        "id": "security.tls.round-trip",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.tls.advertised-port",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.tls.plaintext-client-refused",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.tls.protocol-versions",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.mtls.trusted-client",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.mtls.no-client-certificate",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.mtls.untrusted-client-certificate",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.mtls.principal",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.sasl.plain",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.sasl.scram-sha-256",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.sasl.scram-sha-512",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.sasl.handshake-unknown-mechanism",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.sasl.no-credentials",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.sasl.describe-user-scram-credentials",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.sasl.alter-user-scram-credentials",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.oauthbearer.valid-token",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.oauthbearer.invalid-tokens",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.oauthbearer.error-challenge",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.oauthbearer.plain-port",
+        "verdict": "GAP",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.reauth.session-lifetime",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.reauth.same-connection",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.reauth.expired-session",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.reauth.franz-go-long-session",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.reauth.java-long-session",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      },
+      {
+        "id": "security.reauth.librdkafka-long-session",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.acl.produce",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.acl.consume",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.acl.create-topic",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.acl.idempotent-producer",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.acl.transactional-producer",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.acl.deny-rule",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.acl.metadata-visibility",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.acl.write-implies-describe",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.acl.admin-apis",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.quota.produce-honouring-client",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.quota.produce-ignoring-client",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.quota.fetch-honouring-client",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.quota.describe",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.quota.alter",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.delegation-tokens.create-and-login",
+        "verdict": "GAP",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "security.gssapi.configurable",
+        "verdict": "GAP",
+        "provenance": "kubemq-authored"
+      }
+    ],
+    "tools": [
+      {
+        "id": "tools.cli.topics-lifecycle",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.console-roundtrip",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.groups-describe",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.groups-reset-offsets",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.groups-active-refusals",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.groups-delete",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.configs-topic",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.get-offsets",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.delete-records",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.verifiable-producer-consumer",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      },
+      {
+        "id": "tools.cli.perf-test",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      },
+      {
+        "id": "tools.cli.broker-api-versions",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.leader-election",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.metadata-quorum",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.transactions-tool",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.reassign-partitions",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.log-dirs",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.features",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.delegation-tokens",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.configs-broker",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.cluster-id",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.cli.unregister-broker",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.connect.rf-refusal",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.connect.internal-topics",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.connect.file-roundtrip",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.connect.second-worker",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.connect.graceful-restart",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.connect.sigkill-sink-worker",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.connect.final-state",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.streams.topology-topics",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.streams.word-counts",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.streams.exactly-once",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.streams.continued-counting",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.mm2.into.mirror",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.mm2.into.internal-topics",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.mm2.into.group-offsets",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.mm2.from.mirror",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.mm2.from.internal-topics",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.mm2.from.group-offsets",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.ops.consumer-offsets-topic",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.ops.transaction-state-topic",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.lag.burrow",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.lag.kafka-lag-exporter",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "tools.lag.kafbat-ui",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      }
+    ],
+    "transactions": [
+      {
+        "id": "transactions.franz-go.isolation",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.franz-go.send-offsets",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.franz-go.consume-transform-produce",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.franz-go.fencing",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.franz-go.timeout-abort",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.franz-go.timeout-limit",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.franz-go.transaction-version",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.franz-go.compacted-read",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.franz-go.idempotent-sequences",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.franz-go.epoch-errors",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.java.isolation",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.java.send-offsets",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.java.consume-transform-produce",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.java.fencing",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.java.timeout-abort",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.java.timeout-limit",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.upstream.copier",
+        "verdict": "PASS",
+        "provenance": "upstream"
+      },
+      {
+        "id": "transactions.librdkafka.isolation",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.librdkafka.send-offsets",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.librdkafka.consume-transform-produce",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.librdkafka.fencing",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.librdkafka.timeout-abort",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      },
+      {
+        "id": "transactions.librdkafka.timeout-limit",
+        "verdict": "PASS",
+        "provenance": "kubemq-authored"
+      }
+    ]
+  }
+}

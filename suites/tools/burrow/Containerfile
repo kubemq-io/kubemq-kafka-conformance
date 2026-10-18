@@ -1,0 +1,18 @@
+# Burrow built from source for the engine's architecture (arm64 hosts; see BURROW_SOURCE_* in
+# compose/versions.env). Mirrors upstream's Dockerfile at the same tag, without its "go mod tidy":
+# the module graph stays exactly the release's go.sum.
+ARG BUILD_IMAGE
+ARG RUNTIME_IMAGE
+
+FROM ${BUILD_IMAGE} AS build
+ARG BURROW_SOURCE_COMMIT
+ARG BURROW_SOURCE_SHA256
+WORKDIR /src
+RUN wget -q -O burrow.tar.gz "https://github.com/linkedin/Burrow/archive/${BURROW_SOURCE_COMMIT}.tar.gz" \
+ && echo "${BURROW_SOURCE_SHA256}  burrow.tar.gz" | sha256sum -c - \
+ && tar -xzf burrow.tar.gz --strip-components=1 \
+ && CGO_ENABLED=0 go build -trimpath -mod=readonly -o /burrow .
+
+FROM ${RUNTIME_IMAGE}
+COPY --from=build /burrow /app/burrow
+CMD ["/app/burrow", "--config-dir", "/etc/burrow"]

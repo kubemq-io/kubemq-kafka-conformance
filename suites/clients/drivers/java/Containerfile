@@ -1,0 +1,17 @@
+# kafka-clients driver of the clients track (SCENARIO.md). Built by suites/clients/build-driver.sh
+# with the pinned images of suites/clients/clients.env; nothing is installed on the host.
+ARG BUILD_IMAGE
+ARG RUNTIME_IMAGE
+FROM ${BUILD_IMAGE} AS build
+ARG KAFKA_CLIENTS_VERSION
+WORKDIR /src
+COPY pom.xml .
+RUN mvn -q -B -Dkafka.clients.version=${KAFKA_CLIENTS_VERSION} dependency:go-offline
+COPY src ./src
+RUN mvn -q -B -o -Dkafka.clients.version=${KAFKA_CLIENTS_VERSION} package dependency:copy-dependencies -DoutputDirectory=target/lib -DincludeScope=runtime
+
+FROM ${RUNTIME_IMAGE}
+COPY --from=build /src/target/driver.jar /app/driver.jar
+COPY --from=build /src/target/lib /app/lib
+USER 65532:65532
+ENTRYPOINT ["java", "-Dorg.slf4j.simpleLogger.defaultLogLevel=warn", "-cp", "/app/driver.jar:/app/lib/*", "io.kubemq.kcert.Driver"]

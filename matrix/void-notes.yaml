@@ -1,0 +1,9 @@
+# Root-cause notes for VOID rows. A VOID row (the oracle leg failed) fails the report until it
+# has a note here for that KubeMQ version, linking the published oracle log (GitHub Release
+# asset, with its digest) and stating the root cause.
+#
+#   - row: <row id>
+#     kubemq_version: <version>
+#     oracle_log: <link to the release asset>@sha256:<digest>
+#     note: <root cause>
+notes: []

@@ -1,0 +1,5 @@
+# librdkafka driver of the transactions track: confluent-kafka-python (bundles librdkafka 2.15.1).
+# Wheels for CPython 3.12 manylinux, amd64 and arm64, pinned by hash (PyPI, 2026-10-07).
+confluent-kafka==2.15.1 \
+    --hash=sha256:326e237f6b25587d7dc96854e3a1315979843bacbe48d76a50412f12e49328e1 \
+    --hash=sha256:2d2d876c83214f2651d92c557d5057be1356dd3fbb31f26d50863f610655e2fe

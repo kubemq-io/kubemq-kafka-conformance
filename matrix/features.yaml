@@ -1,0 +1,366 @@
+# Track B broker-feature rows. Each row's probe runs on the Kafka oracle, then on KubeMQ with
+# only the bootstrap address changed; the two observations are compared field by field
+# (suites/features). Every row records its provenance and source.
+track: features
+rows:
+  # --- Produce ------------------------------------------------------------------------------
+  - id: features.produce.acks-0
+    group: produce
+    title: "acks=0: 300 records over 3 partitions all delivered, in order, offsets contiguous from 0"
+    probe: produce-acks-0
+    provenance: kubemq-authored
+    source: suites/features/probe/produce.go (franz-go client)
+  - id: features.produce.acks-1
+    group: produce
+    title: "acks=1: 300 records over 3 partitions all delivered, in order, offsets contiguous from 0"
+    probe: produce-acks-1
+    provenance: kubemq-authored
+    source: suites/features/probe/produce.go (franz-go client)
+  - id: features.produce.acks-all
+    group: produce
+    title: "acks=all with idempotence: 300 records over 3 partitions all delivered, in order, offsets contiguous from 0"
+    probe: produce-acks-all
+    provenance: kubemq-authored
+    source: suites/features/probe/produce.go (franz-go client)
+  - id: features.produce.codec-gzip
+    group: produce
+    title: "gzip-compressed batches round-trip; codec the broker returns them in"
+    probe: produce-codec-gzip
+    provenance: kubemq-authored
+    source: suites/features/probe/produce.go (franz-go client)
+  - id: features.produce.codec-snappy
+    group: produce
+    title: "snappy-compressed batches round-trip; codec the broker returns them in"
+    probe: produce-codec-snappy
+    provenance: kubemq-authored
+    source: suites/features/probe/produce.go (franz-go client)
+  - id: features.produce.codec-lz4
+    group: produce
+    title: "lz4-compressed batches round-trip; codec the broker returns them in"
+    probe: produce-codec-lz4
+    provenance: kubemq-authored
+    source: suites/features/probe/produce.go (franz-go client)
+  - id: features.produce.codec-zstd
+    group: produce
+    title: "zstd-compressed batches round-trip; codec the broker returns them in"
+    probe: produce-codec-zstd
+    provenance: kubemq-authored
+    source: suites/features/probe/produce.go (franz-go client)
+  - id: features.produce.broker-recompression
+    group: produce
+    title: "Topic compression.type=gzip, producer sends lz4: records come back as gzip (broker recompresses on append)"
+    probe: produce-broker-recompression-gzip
+    provenance: kubemq-authored
+    source: suites/features/probe/produce.go (franz-go client)
+  - id: features.produce.headers
+    group: produce
+    title: "Record headers round-trip: duplicate keys, empty value, null value, non-ASCII key, 50 headers"
+    probe: produce-headers
+    provenance: kubemq-authored
+    source: suites/features/probe/produce.go (franz-go client)
+  - id: features.produce.default-partitioner
+    group: produce
+    title: "Default partitioner parity, Kafka 4.3.1 client rule: keyed records on murmur2(key) mod partitions; unkeyed records uniform sticky (KIP-794, Kafka 3.3+) and all delivered"
+    probe: produce-default-partitioner
+    provenance: kubemq-authored
+    source: suites/features/probe/produce.go (franz-go default partitioner, checked against Kafka's murmur2)
+  - id: features.produce.max-message-bytes
+    group: produce
+    title: "max.message.bytes: 10 KiB topic accepts 5 KiB and refuses 20 KiB; broker default refuses 1.2 MiB"
+    probe: produce-max-message-bytes
+    provenance: kubemq-authored
+    source: suites/features/probe/produce.go (franz-go client)
+  # --- Classic consumer groups -------------------------------------------------------------
+  - id: features.groups.assignor-range
+    group: groups
+    title: "Range assignor (client-side): two members split 6 partitions 3 and 3, each a contiguous range"
+    probe: groups-assignor-range
+    provenance: kubemq-authored
+    source: suites/features/probe/groups.go (franz-go RangeBalancer, Kafka-compatible)
+  - id: features.groups.assignor-roundrobin
+    group: groups
+    title: "Round-robin assignor: two members split 6 partitions 3 and 3, alternating"
+    probe: groups-assignor-roundrobin
+    provenance: kubemq-authored
+    source: suites/features/probe/groups.go (franz-go RoundRobinBalancer)
+  - id: features.groups.assignor-sticky
+    group: groups
+    title: "Sticky assignor: two members split 6 partitions 3 and 3"
+    probe: groups-assignor-sticky
+    provenance: kubemq-authored
+    source: suites/features/probe/groups.go (franz-go StickyBalancer)
+  - id: features.groups.assignor-cooperative-sticky
+    group: groups
+    title: "Cooperative-sticky assignor (incremental rebalance): two members split 6 partitions 3 and 3"
+    probe: groups-assignor-cooperative-sticky
+    provenance: kubemq-authored
+    source: suites/features/probe/groups.go (franz-go CooperativeStickyBalancer)
+  - id: features.groups.rebalance-join-leave-crash
+    group: groups
+    title: "Rebalance on join, clean leave (reassigned within 4 s) and crash without leave (reassigned after the 6 s session timeout, within 30 s)"
+    probe: groups-rebalance-join-leave-crash
+    provenance: kubemq-authored
+    source: suites/features/probe/groups.go (franz-go; crash = connections cut, no LeaveGroup)
+  - id: features.groups.session-timeout-bounds
+    group: groups
+    title: "Session timeout outside group.min/max.session.timeout.ms refused with INVALID_SESSION_TIMEOUT"
+    probe: groups-session-timeout-bounds
+    provenance: kubemq-authored
+    source: suites/features/probe/groups.go (raw JoinGroup)
+  - id: features.groups.rebalance-timeout-expiry
+    group: groups
+    title: "Rebalance timeout (Java's max.poll.interval.ms): a member that does not rejoin is removed after its timeout and its next heartbeat is refused"
+    probe: groups-rebalance-timeout-expiry
+    provenance: kubemq-authored
+    source: suites/features/probe/groups.go (raw JoinGroup, SyncGroup, Heartbeat)
+  - id: features.groups.static-membership
+    group: groups
+    title: "Static membership (KIP-345): restart with the same instance id keeps the generation; the replaced member id is fenced with FENCED_INSTANCE_ID"
+    probe: groups-static-membership
+    provenance: kubemq-authored
+    source: suites/features/probe/groups.go (raw JoinGroup, SyncGroup, Heartbeat)
+  - id: features.groups.offset-reset-policies
+    group: groups
+    title: "auto.offset.reset for a group with no committed offset: earliest, latest, none"
+    probe: groups-offset-reset-policies
+    provenance: kubemq-authored
+    source: suites/features/probe/groups.go (franz-go)
+  # --- Offsets ------------------------------------------------------------------------------
+  - id: features.offsets.commit-fetch
+    group: offsets
+    title: "Offset commit and fetch: committed offsets and metadata read back exactly; uncommitted partition reads -1"
+    probe: offsets-commit-fetch
+    provenance: kubemq-authored
+    source: suites/features/probe/offsets.go (franz-go admin)
+  - id: features.offsets.commit-generation-checks
+    group: offsets
+    title: "Group commits are fenced: stale generation ILLEGAL_GENERATION, unknown member UNKNOWN_MEMBER_ID, member's own commit accepted"
+    probe: offsets-commit-generation-checks
+    provenance: kubemq-authored
+    source: suites/features/probe/offsets.go (raw OffsetCommit)
+  - id: features.offsets.multi-group-fetch
+    group: offsets
+    title: "Admin fetch of three groups' offsets at once returns each group's own offsets (batched OffsetFetch v8 where supported, else one request per group)"
+    probe: offsets-multi-group-fetch
+    provenance: kubemq-authored
+    source: suites/features/probe/offsets.go (franz-go admin FetchManyOffsets)
+  - id: features.offsets.delete-records
+    group: offsets
+    title: "DeleteRecords to offset 5: log start becomes 5, earliest is 5, fetch from 0 answers OFFSET_OUT_OF_RANGE"
+    probe: offsets-delete-records
+    provenance: kubemq-authored
+    source: suites/features/probe/offsets.go (franz-go admin, raw Fetch)
+  - id: features.offsets.retention
+    group: offsets
+    title: "Committed-offset retention (offsets.retention.minutes=1 on both brokers): an empty group's offset expires; an active member's group keeps its offsets (KIP-211)"
+    probe: offsets-retention
+    provenance: kubemq-authored
+    source: suites/features/probe/offsets.go (franz-go)
+  - id: features.offsets.delete-group-offsets
+    group: offsets
+    title: "OffsetDelete removes an empty group's committed offset"
+    probe: offsets-delete-group-offsets
+    provenance: kubemq-authored
+    source: suites/features/probe/offsets.go (franz-go admin)
+  # --- Log semantics ------------------------------------------------------------------------
+  - id: features.log.timestamp-createtime
+    group: log
+    title: "message.timestamp.type=CreateTime (default): producer timestamps kept, type CreateTime"
+    probe: log-timestamp-createtime
+    provenance: kubemq-authored
+    source: suites/features/probe/log.go (franz-go client)
+  - id: features.log.timestamp-logappendtime
+    group: log
+    title: "message.timestamp.type=LogAppendTime: broker overwrites producer timestamps with append time"
+    probe: log-timestamp-logappendtime
+    provenance: kubemq-authored
+    source: suites/features/probe/log.go (franz-go client)
+  - id: features.log.timestamp-validation
+    group: log
+    title: "Timestamp validation (KIP-937): message.timestamp.before/after.max.ms refuse with INVALID_TIMESTAMP; default topic behaviour"
+    probe: log-timestamp-validation
+    provenance: kubemq-authored
+    source: suites/features/probe/log.go (franz-go client)
+  - id: features.log.listoffsets-specs
+    group: log
+    title: "ListOffsets earliest, latest, by timestamp, and max-timestamp (-3) with an out-of-order largest timestamp"
+    probe: log-listoffsets-specs
+    provenance: kubemq-authored
+    source: suites/features/probe/log.go (franz-go client, raw ListOffsets for -3)
+  - id: features.log.compaction
+    group: log
+    title: "cleanup.policy=compact, one uncompressed record per produce: latest value per key kept; tombstone removed after delete.retention.ms (within 120 s)"
+    probe: log-compaction
+    provenance: kubemq-authored
+    source: suites/features/probe/log.go (franz-go client)
+  - id: features.log.compaction-batched-compressed
+    group: log
+    title: "cleanup.policy=compact, records batched and lz4-compressed as Kafka Connect and Streams write them: latest value per key kept; tombstone removed (within 120 s)"
+    probe: log-compaction-batched-compressed
+    provenance: kubemq-authored
+    source: suites/features/probe/log.go (franz-go client)
+  - id: features.log.compaction-dirty-ratio
+    group: log
+    title: "min.cleanable.dirty.ratio raised to 0.9 after a first cleaning pass: a tiny dirty share stays uncompacted for 45 s"
+    probe: log-compaction-dirty-ratio
+    provenance: kubemq-authored
+    source: suites/features/probe/log.go (franz-go client)
+  - id: features.log.compaction-max-lag
+    group: log
+    title: "max.compaction.lag.ms=10000 with dirty ratio raised to 0.9 after a first pass: a tiny dirty share is compacted anyway within 60 s"
+    probe: log-compaction-max-lag
+    provenance: kubemq-authored
+    source: suites/features/probe/log.go (franz-go client)
+  - id: features.log.compaction-java-gzip
+    group: log
+    title: "cleanup.policy=compact, records batched and gzip-compressed, then read back by the Java consumer after compaction: it ends cleanly, no exception, latest value per key, tombstoned key gone"
+    probe: log-compaction-java-gzip
+    provenance: kubemq-authored
+    source: suites/features/probe/compaction_java.go (franz-go producer; Java consumer kafka-console-consumer from the pinned Kafka image)
+  - id: features.log.compaction-java-snappy
+    group: log
+    title: "cleanup.policy=compact, records batched and snappy-compressed, then read back by the Java consumer after compaction: it ends cleanly, no exception, latest value per key, tombstoned key gone"
+    probe: log-compaction-java-snappy
+    provenance: kubemq-authored
+    source: suites/features/probe/compaction_java.go (franz-go producer; Java consumer kafka-console-consumer from the pinned Kafka image)
+  - id: features.log.compaction-java-lz4
+    group: log
+    title: "cleanup.policy=compact, records batched and lz4-compressed, then read back by the Java consumer after compaction: it ends cleanly, no exception, latest value per key, tombstoned key gone"
+    probe: log-compaction-java-lz4
+    provenance: kubemq-authored
+    source: suites/features/probe/compaction_java.go (franz-go producer; Java consumer kafka-console-consumer from the pinned Kafka image)
+  - id: features.log.compaction-java-zstd
+    group: log
+    title: "cleanup.policy=compact, records batched and zstd-compressed, then read back by the Java consumer after compaction: it ends cleanly, no exception, latest value per key, tombstoned key gone"
+    probe: log-compaction-java-zstd
+    provenance: kubemq-authored
+    source: suites/features/probe/compaction_java.go (franz-go producer; Java consumer kafka-console-consumer from the pinned Kafka image)
+  - id: features.log.retention-ms
+    group: log
+    title: "retention.ms: log start offset advances past expired records (within 120 s)"
+    probe: log-retention-ms
+    provenance: kubemq-authored
+    source: suites/features/probe/log.go (franz-go client)
+  - id: features.log.retention-ms-zero
+    group: log
+    title: "retention.ms=0: accepted, described back as 0; closed segments deleted at once (log start passes the first records within 120 s), newest record kept in the active segment"
+    probe: log-retention-ms-zero
+    provenance: kubemq-authored
+    source: suites/features/probe/log.go (franz-go client)
+  - id: features.log.retention-bytes
+    group: log
+    title: "retention.bytes: topic accepted and log start offset advances once the size cap is exceeded (within 120 s)"
+    probe: log-retention-bytes
+    provenance: kubemq-authored
+    source: suites/features/probe/log.go (franz-go client)
+  # --- Fetch --------------------------------------------------------------------------------
+  - id: features.log.retention-bytes-compact-delete
+    group: log
+    title: "retention.bytes on a cleanup.policy=compact,delete topic (every record keyed uniquely): log start advances past expired records once the size bound is passed (within 120 s)"
+    probe: log-retention-bytes-compact-delete
+    provenance: kubemq-authored
+    source: suites/features/probe/log.go (franz-go client)
+  - id: features.fetch.sessions
+    group: fetch
+    title: "Fetch sessions (KIP-227): session created on full fetch, incremental fetch accepted, unknown session answers FETCH_SESSION_ID_NOT_FOUND"
+    probe: fetch-sessions
+    provenance: kubemq-authored
+    source: suites/features/probe/fetch.go (raw Fetch requests through franz-go)
+  - id: features.fetch.kip74-oversized-first-record
+    group: fetch
+    title: "KIP-74: with 1-byte response and partition limits the first record batch (10 KiB) is still returned"
+    probe: fetch-kip74-oversized-first-record
+    provenance: kubemq-authored
+    source: suites/features/probe/fetch.go (raw Fetch requests through franz-go)
+  - id: features.fetch.min-bytes
+    group: fetch
+    title: "fetch.min.bytes=64 KiB, max wait 500 ms: with 1 KiB available the broker waits and returns it; with 80 KiB available it answers at once"
+    probe: fetch-min-bytes
+    provenance: kubemq-authored
+    source: suites/features/probe/fetch.go (raw Fetch requests through franz-go)
+  - id: features.fetch.long-poll
+    group: fetch
+    title: "Long poll: fetch.min.bytes unmet waits fetch.max.wait.ms (2 s); data arriving mid-wait answers early"
+    probe: fetch-long-poll
+    provenance: kubemq-authored
+    source: suites/features/probe/fetch.go (raw Fetch requests through franz-go)
+  # --- Admin --------------------------------------------------------------------------------
+  - id: features.admin.topics
+    group: admin
+    title: "Topics: create, duplicate create, validate-only create, zero partitions, replication factor above broker count, delete, delete unknown"
+    probe: admin-topics
+    provenance: kubemq-authored
+    source: suites/features/probe/admin.go (franz-go admin)
+  - id: features.admin.partitions
+    group: admin
+    title: "CreatePartitions: increase 2 to 4 (new partition writable); same count and decrease refused"
+    probe: admin-partitions
+    provenance: kubemq-authored
+    source: suites/features/probe/admin.go (franz-go admin)
+  - id: features.admin.partition-limit
+    group: admin
+    title: "Partition count limit: topics with 256 and 300 partitions"
+    probe: admin-partition-limit
+    provenance: kubemq-authored
+    source: suites/features/probe/admin.go (franz-go admin)
+  - id: features.admin.configs
+    group: admin
+    title: "Topic configs: value set at creation described back; incremental alter set and delete"
+    probe: admin-configs
+    provenance: kubemq-authored
+    source: suites/features/probe/admin.go (franz-go admin)
+  - id: features.admin.groups
+    group: admin
+    title: "Groups: list, describe (state, protocol, members), delete refused while non-empty, allowed when empty"
+    probe: admin-groups
+    provenance: kubemq-authored
+    source: suites/features/probe/admin.go (franz-go admin)
+  - id: features.admin.long-topic-names
+    group: admin
+    title: "Topic names of 96 and 249 characters are accepted and 250 refused with INVALID_TOPIC_EXCEPTION; the broker keeps answering after each"
+    probe: admin-long-topic-names
+    provenance: kubemq-authored
+    source: suites/features/probe/admin.go (franz-go admin)
+  # --- Wire-level legs ported from kubemq-server tests/kafka-conformance (Track A) ----------
+  - id: features.wire.apiversions-downgrade
+    group: wire
+    title: "ApiVersions negotiation on one connection: above the broker's max answers UNSUPPORTED_VERSION with a v0 body listing the max, connection stays open, the max then succeeds"
+    probe: wire-apiversions-downgrade
+    provenance: kubemq-authored
+    source: kubemq-server tests/kafka-conformance/conformance_apiversions_test.go (raw TCP)
+  - id: features.wire.listoffsets-in-batch
+    group: wire
+    title: "ListOffsets by timestamp and max-timestamp inside gzip, snappy, lz4 and zstd batches, before and after DeleteRecords to mid-batch"
+    probe: wire-listoffsets-in-batch
+    provenance: kubemq-authored
+    source: kubemq-server tests/kafka-conformance/conformance_listoffsets_timestamps_test.go (raw ListOffsets)
+  - id: features.wire.listoffsets-layouts
+    group: wire
+    title: "ListOffsets by timestamp on non-monotonic records, ties in one batch, max-timestamp below the log start, empty topic"
+    probe: wire-listoffsets-layouts
+    provenance: kubemq-authored
+    source: kubemq-server tests/kafka-conformance/conformance_listoffsets_timestamps_test.go (raw ListOffsets)
+  - id: features.wire.listoffsets-transactions
+    group: wire
+    title: "ListOffsets under read_uncommitted and read_committed with an open, then aborted, transaction"
+    probe: wire-listoffsets-transactions
+    provenance: kubemq-authored
+    source: kubemq-server tests/kafka-conformance/conformance_listoffsets_timestamps_test.go (raw ListOffsets)
+  - id: features.wire.out-of-range-reset
+    group: wire
+    title: "Consumer first fetch past the end: resume offset with franz-go v1.22's default reset and with a by-timestamp reset (CreateTime, not ingest time)"
+    probe: wire-out-of-range-reset
+    provenance: kubemq-authored
+    source: kubemq-server tests/kafka-conformance/conformance_franzgo_reset_test.go (franz-go)
+  - id: features.wire.topic-ids
+    group: wire
+    title: "Topic ids: present and stable in Metadata, new id after delete and re-create, DeleteTopics by id"
+    probe: wire-topic-ids
+    provenance: kubemq-authored
+    source: suites/features/probe/wire_errors.go (raw Metadata, DeleteTopics)
+  - id: features.wire.error-codes
+    group: wire
+    title: "Error-code parity for bad inputs: negative and past-end fetch offsets, unknown partitions, invalid topic names, empty group id, unknown API key, unsupported Produce version"
+    probe: wire-error-codes
+    provenance: kubemq-authored
+    source: suites/features/probe/wire_errors.go (raw requests)
